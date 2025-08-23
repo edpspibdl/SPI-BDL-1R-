@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+.page_404 {
+    padding: 110px 0;
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+}
+
+.page_404 img {
+    width: 100%;
+}
+
+.four_zero_four_bg {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    background: url('./bg.gif') no-repeat center;
+    background-size: cover;
+}
+
+.four_zero_four_bg h1 {
+    font-size: 250px; /* Ukuran besar */
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.1); /* Warna hitam dengan transparansi */
+    text-align: center;
+}
+
+
+h1 {
+    font-size: 80px;
+}
+
+h3 {
+    font-size: 80px;
+}
+
+a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    background: #39ac31;
+    display: inline-block;
+}
+
+.content_box_404 {
+    margin-top: -50px;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #fff;
+}
+
+.page_maintenance {
+    padding: 40px 0;
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+}
+
+.maintenance_bg {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+}
+
+.maintenance_bg h1 {
+    font-size: 120px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.3); /* Transparan */
+    text-align: center;
+}
+
+.content_box_maintenance {
+    margin-top: -30px;
+}
+
+.content_box_maintenance h3 {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.content_box_maintenance p {
+    font-size: 18px;
+    color: #555;
+}
+
+
+
+
+
+.container {
+    background: white;
+    justify-content: center;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+}
+
+.coming_soon_bg h1 {
+    font-size: 100px;
+    color: #ff9800;
+    margin: 0;
+    text-align: center;
+}
+
+.content_box_coming_soon h3 {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
+
+.content_box_coming_soon p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#countdown {
+font-size: 32px;
+font-weight: bold;
+color: #ff5722;
+background: #fff3e0;
+padding: 10px 20px;
+border-radius: 5px;
+display: block; /* Memastikan elemen bisa diatur dengan margin */
+margin: 10px auto; /* Center secara horizontal */
+text-align: center;
+width: fit-content; /* Agar ukurannya sesuai dengan teks di dalamnya */
+}
+
+/* Pastikan parent juga memusatkan konten */
+.content_box_coming_soon {
+display: flex;
+flex-direction: column;
+align-items: center; /* Memusatkan elemen di dalam */
+justify-content: center;
+text-align: center;
+}

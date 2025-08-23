@@ -1,0 +1,19 @@
+# Aktifkan mod_rewrite
+RewriteEngine On
+
+# Blokir semua kecuali yang diizinkan
+Order Deny,Allow
+Deny from all
+
+# Izinkan semua IP dalam 192.168.170.xx
+Allow from 192.168.170.0/24
+Allow from 192.168.173.0/24
+Allow from 192.168.195.0/24
+Allow from 192.168.163.0/24
+Allow from 192.168.152.0/24
+
+
+# Izinkan localhost
+Allow from 127.0.0.1
+
+

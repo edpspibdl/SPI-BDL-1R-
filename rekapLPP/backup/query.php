@@ -1,0 +1,74 @@
+<?php
+function get_data()
+{
+    $query = " SELECT 
+    'REKAP' STATUS,
+    COUNT (DISTINCT(CASE WHEN NVL(SELISIH,0)>0  THEN PLU END)) PLU_PLUS,
+    COUNT (DISTINCT(CASE WHEN NVL(SELISIH,0)<0  THEN PLU END)) PLU_MINUS,
+    COUNT (DISTINCT(CASE WHEN NVL(SELISIH,0)=0  THEN PLU END)) PLU_TIDAK_SELISIH,
+    COUNT (DISTINCT(PLU)) PLU_ALL,
+    ROUND(SUM(CASE WHEN NVL(SELISIH,0)>0  THEN SELISIH END)) RPH_PLUS,
+    ROUND(SUM(CASE WHEN NVL(SELISIH,0)<0  THEN SELISIH END)) RPH_MINUS,
+    ROUND(SUM(SELISIH)) SALDO_AKHIR,
+    COUNT (DISTINCT(CASE WHEN DIV = '1' AND NVL(SELISIH,0)>0  THEN PLU END)) PLUFOOD_PLUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '1' AND NVL(SELISIH,0)<0  THEN PLU END)) PLUFOOD_MINUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '1' AND NVL(SELISIH,0)=0  THEN PLU END)) PLUFOOD_TDK_SELISIH,
+    ROUND(SUM(CASE WHEN DIV = '1' AND NVL(SELISIH,0)>0  THEN SELISIH END)) RPHFOOD_PLUS,
+    ROUND(SUM(CASE WHEN DIV = '1' AND NVL(SELISIH,0)<0  THEN SELISIH END)) RPHFOOD_MINUS,
+     
+    COUNT (DISTINCT(CASE WHEN DIV = '2' AND NVL(SELISIH,0)>0  THEN PLU END)) PLUNFOOD_PLUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '2' AND NVL(SELISIH,0)<0  THEN PLU END)) PLUNFOOD_MINUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '2' AND NVL(SELISIH,0)=0  THEN PLU END)) PLUNFOOD_TDK_SELISIH,
+    ROUND(SUM(CASE WHEN DIV = '2' AND NVL(SELISIH,0)>0  THEN SELISIH END)) RPHNFOOD_PLUS,
+    ROUND(SUM(CASE WHEN DIV = '2' AND NVL(SELISIH,0)<0  THEN SELISIH END)) RPHNFOOD_MINUS,
+     
+    COUNT (DISTINCT(CASE WHEN DIV = '3' AND NVL(SELISIH,0)>0  THEN PLU END)) PLUGMS_PLUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '3' AND NVL(SELISIH,0)<0  THEN PLU END)) PLUGMS_MINUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '3' AND NVL(SELISIH,0)=0  THEN PLU END)) PLUGMS_TDK_SELISIH,
+    ROUND(SUM(CASE WHEN DIV = '3' AND NVL(SELISIH,0)>0  THEN SELISIH END)) RPHGMS_PLUS,
+    ROUND(SUM(CASE WHEN DIV = '3' AND NVL(SELISIH,0)<0  THEN SELISIH END)) RPHGMS_MINUS,
+     
+    COUNT (DISTINCT(CASE WHEN DIV = '4' AND NVL(SELISIH,0)>0  THEN PLU END)) PLUPERISH_PLUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '4' AND NVL(SELISIH,0)<0  THEN PLU END)) PLUPERISH_MINUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '4' AND NVL(SELISIH,0)=0  THEN PLU END)) PLUPERISH_TDK_SELISIH,
+    ROUND(SUM(CASE WHEN DIV = '4' AND NVL(SELISIH,0)>0  THEN SELISIH END)) RPHPERISH_PLUS,
+    ROUND(SUM(CASE WHEN DIV = '4' AND NVL(SELISIH,0)<0  THEN SELISIH END)) RPHPERISH_MINUS,
+    
+    COUNT (DISTINCT(CASE WHEN DIV = '6' AND NVL(SELISIH,0)>0  THEN PLU END)) PLUFASTFOOD_PLUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '6' AND NVL(SELISIH,0)<0  THEN PLU END)) PLUFASTFOOD_MINUS,
+    COUNT (DISTINCT(CASE WHEN DIV = '6' AND NVL(SELISIH,0)=0  THEN PLU END)) PLUFASTFOOD_TDK_SELISIH,
+    ROUND(SUM(CASE WHEN DIV = '6' AND NVL(SELISIH,0)>0  THEN SELISIH END)) RPHFASTFOOD_PLUS,
+    ROUND(SUM(CASE WHEN DIV = '6' AND NVL(SELISIH,0)<0  THEN SELISIH END)) RPHFASTFOOD_MINUS
+    
+    FROM  
+    (select  prd_kodedivisi DIV, prd_kodedepartement DEPT, prd_kodekategoribarang KATB, prd_prdcd PLU,   
+    Prd_deskripsipanjang DESK,prd_unit UNIT ,prd_frac FRAC,prd_kodetag TAG, st_avgcost ACOST_PCS,sum(lks_qty) STOK_PLANO,    
+    st_saldoakhir STOK_LPP,sum(lks_qty * st_avgcost) RPH_PLANO,
+    (st_saldoakhir * st_avgcost) RPH_LPP,sum(lks_qty * st_avgcost)-(st_saldoakhir * st_avgcost) SELISIH   
+    from tbmaster_prodmast, 
+    tbmaster_stock, tbmaster_lokasi where prd_prdcd = st_prdcd and prd_prdcd = lks_prdcd and st_lokasi = '01'     
+    and prd_unit<>'KG'GROUP BY prd_kodedivisi, prd_kodedepartement, prd_kodekategoribarang, prd_prdcd, Prd_deskripsipanjang, prd_unit, 
+    prd_frac, prd_kodetag, st_avgcost, st_saldoakhir, (st_saldoakhir * st_avgcost)) where DIV IN ('1','2','3','4','6')
+    AND PLU NOT IN (SELECT PRD_PRDCD FROM TBMASTER_PRODMAST WHERE PRD_PRDCD LIKE '%0' AND PRD_DESKRIPSIPANJANG LIKE '%JUS SEGAR%') GROUP BY 'REKAP' ";
+
+    include '../include/koneksi.php';
+    $stid = oci_parse($conn, $query);
+    oci_execute($stid);
+
+    while ($row = oci_fetch_array($stid, OCI_RETURN_NULLS + OCI_ASSOC)) {
+        $h['STATUS']       = 'OK';
+        $h['R_PLU_PLUS']   = $row['PLU_PLUS'];
+        $h['R_PLU_MINUS']  = $row['PLU_MINUS'];
+        $h['R_PLU_TS']     = $row['PLU_TIDAK_SELISIH'];
+        $h['R_PLU_ALL']    = $row['PLU_ALL'];
+
+        $h['R_RPH_PLUS']   = $row['RPH_PLUS'];
+        $h['R_RPH_MINUS']  = $row['RPH_MINUS'];
+        $h['R_RPH_TS']     = 0;
+        $h['R_RPH_ALL']    = $row['SALDO_AKHIR'];
+		
+    }
+    return $h;
+}
+
+echo json_encode(get_data());

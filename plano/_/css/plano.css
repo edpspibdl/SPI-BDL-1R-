@@ -1,0 +1,153 @@
+/*body {
+  min-height: 2000px;
+  padding-top: 70px;
+}
+*/
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+  padding-top: 0px;
+  padding-bottom: 50px;
+  /* background-image: url("../image/bg_gray.jpg"); */
+  /*background-color : #f1f1f1;*/
+  
+}
+.footer {
+  position: absolute;
+  bottom: 50;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  /*background-color: #f1f1f1;*/
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+
+.container .text-muted {
+  margin: 20px 0;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+code {
+  font-size: 80%;
+}
+
+.bayangan {
+/*box-shadow: 2px 2px 3px #aaaaaa; */
+box-shadow: 4px 4px 6px #aaaaaa;
+}
+
+.nav-trans {
+    /* background-color: rgba(0,0,0,0.5); */
+    /* background: transparent; */
+    opacity: 0.9;
+  }
+
+.bayang {
+-moz-box-shadow: 0px 10px 20px 3px #d3d3d3;
+-webkit-box-shadow: 0px 10px 20px 3px #d3d3d3;
+/*box-shadow: 0 0 5px #888; */
+/*box-shadow: 0px 10px 20px 3px #d3d3d3; */
+box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+
+/* 
+   shows a shadow with no offset and a blur distance of 5px: 
+   http://www.css3.info/preview/box-shadow/
+*/
+.plano-box-shadow {
+-moz-box-shadow: 0 0 5px #888;
+-webkit-box-shadow: 0 0 5px#888;
+box-shadow: 0 0 5px #888;
+}
+
+
+@font-face {
+  font-family: 'Handlee';
+  src: url('../fonts/Handlee-Regular.ttf') format('truetype');
+}
+
+.handlee {
+  font-family: "Handlee", Helvetica, Arial, sans-serif;
+  font-size: 1em;
+}
+
+.text-bayang {
+  text-shadow: 2px 2px 5px #d3d3d3;
+}
+
+.badge-up {
+  /*margin-top: 0px;*/
+  position: absolute;
+  right: -5px;
+  top: 0;
+  
+
+}
+
+.table-hover tbody tr:hover td, 
+.table-hover tbody tr:hover th   {
+  background-color: #007aff;
+  color: white;
+}
+
+
+.table-hover tbody tr:hover h4   {
+  
+  color: white;
+
+}
+
+.btn-round-lg{
+  border-radius: 22.5px;
+}
+
+.back-to-top {
+    cursor: pointer;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display:none;
+}
+
+/*Setting Responsive jika yang di pakai Handphone*/
+		@media (max-width: 991px){
+			.navbar-nav {
+                margin-top: 7.5px;
+                margin-right: 1px;
+                margin-bottom: 1px;
+                margin-left: 1px;
+                }
+            h4 {
+                font-size: 1em;
+            }
+            td {
+                font-size: 0.8em;
+            }
+            h2{
+                font-size: 0.8em !important;
+            }
+            a.btn, .badge, th {
+                  font-size: 0.8em !important;          
+            }
+            a.list-group-item {
+                font-size: 0.8em !important;      
+            }
+		}
+

@@ -1,0 +1,13 @@
+# Aktifkan mod_rewrite
+
+RewriteEngine On
+
+# Secara default, Apache mengizinkan semua akses kecuali jika ada aturan Deny
+
+# Karena kita ingin semua bisa akses, kita tidak perlu aturan Deny.
+
+# Jika Anda memiliki RewriteRule lain, letakkan di sini.
+
+# Contoh:
+
+# RewriteRule ^produk/([0-9]+)$ product.php?id=$1 [L]

@@ -1,0 +1,138 @@
+body {
+            overflow: hidden;
+            /* Menghilangkan scroll bar */
+        }
+
+        /* Full-screen background for the entire page, or split it */
+        .full-screen-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, #4facfe, #00f2fe);
+            z-index: -1;
+        }
+
+        /* Keranjang Animasi */
+        .cart {
+            position: absolute;
+            top: -100px;
+            font-size: 40px;
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Styling Login Container */
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+
+        /* Ensure card fills its column on smaller screens */
+        @media (max-width: 767.98px) {
+
+            /* For devices smaller than md (e.g., sm, xs) */
+            .login-container {
+                max-width: 90%;
+                /* Adjust as needed for smaller screens */
+                margin: 50px auto;
+                /* Add some top/bottom margin */
+            }
+        }
+
+
+        /* Tombol Login */
+        .btn-primary {
+            background: #ff6b6b;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #ff4f4f;
+        }
+
+        /* Responsive image in login-brand */
+        .login-brand img {
+            max-width: 100%;
+            /* Make image responsive */
+            height: auto;
+            /* Maintain aspect ratio */
+        }
+
+        /* --- New Styles for 2-Column Layout --- */
+        .section-split {
+            min-height: 100vh;
+            /* Make the section take full viewport height */
+            display: flex;
+            /* Use flexbox for vertical centering */
+            align-items: center;
+            /* Vertically center items in the row */
+        }
+
+        .left-panel {
+            background: linear-gradient(120deg, #4facfe, #00f2fe);
+            /* Your gradient background */
+            height: 100vh;
+            /* Take full height of viewport */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            /* You can add an image here */
+            background-image: url('../img/bg-allteam.jpeg');
+            /* Make the background image cover the area and center it */
+            background-size: cover;
+            background-position: center;
+        }
+
+        .right-panel {
+            height: 100vh;
+            /* Take full height of viewport */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* No background here, login-container has its own */
+        }
+
+        /* Adjustments for smaller screens to stack columns */
+        @media (max-width: 767.98px) {
+
+            /* Below medium breakpoint */
+            .left-panel,
+            .right-panel {
+                height: auto;
+                /* Allow height to adjust */
+                min-height: 50vh;
+                /* Give some minimum height for content */
+                padding: 30px 0;
+                /* Add padding for content */
+            }
+
+            .right-panel {
+                order: 1;
+                /* Puts right panel (login) first on small screens */
+            }
+
+            .left-panel {
+                order: 2;
+                /* Puts left panel (visual) second on small screens */
+            }
+        }

@@ -1,0 +1,35 @@
+SELECT Nvl(spb.spb_recordid, '0')                AS spb_status,
+			       spb.spb_lokasiasal,
+			       spb.spb_lokasitujuan,
+			       spb.spb_prdcd,
+			       spb.spb_deskripsi,
+			       prd.prd_unit                              AS spb_unit,
+			       prd.prd_frac                              AS spb_frac,
+			       Nvl(prd.prd_kodetag, ' ')                 AS spb_kodetag,
+			       spb.spb_id,
+			       spb.spb_qty,
+			       Trunc(spb.spb_qty / prd.prd_frac)         AS spb_rak_ctn,
+			       MOD(spb.spb_qty, prd.prd_frac)            AS spb_rak_pcs,
+			       spb.spb_minus,
+			       Trunc(spb.spb_minus / prd.prd_frac)       AS spb_minta_ctn,
+			       MOD(spb.spb_minus, prd.prd_frac)          AS spb_minta_pcs,
+			       CASE
+			         WHEN spb.spb_jenis = 'MANUAL' THEN 'MANUAL'
+			         WHEN spb.spb_jenis = 'OTOMATIS' AND Substr(spb.spb_lokasitujuan, 1, 1) IN ( 'G', 'D' ) 
+			              THEN 'GUDANG AUTO'
+			              ELSE 'TOKO AUTO'
+			       END                                       AS spb_jenis,
+			       Trunc(SYSDATE) - Trunc(spb.spb_create_dt) AS spb_hari_tertunda,
+			       CASE
+			       WHEN TO_number(To_char(Nvl(spb.spb_create_dt, SYSDATE), 'hh24')) < 8
+			       -- antisipasi karena job bekerja jam 00 sementara toko aktif jam 08
+			       THEN Floor(24 * ( To_date(To_char(SYSDATE, 'yyyymmdd hh24:mi:ss'), 'YYYY-MM-DD hh24:mi:ss') -
+			            To_date(To_char(Nvl(spb.spb_create_dt, SYSDATE), 'yyyymmdd hh24:mi:ss'), 'YYYY-MM-DD hh24:mi:ss' ) ))  - 8
+			       ELSE 
+			            Floor(24 * ( To_date(To_char(SYSDATE, 'yyyymmdd hh24:mi:ss'), 'YYYY-MM-DD hh24:mi:ss') -
+			            To_date(To_char(Nvl(spb.spb_create_dt, SYSDATE), 'yyyymmdd hh24:mi:ss'), 'YYYY-MM-DD hh24:mi:ss' ) ))  
+			       END AS spb_jam_tertunda
+			FROM   tbtemp_antrianspb spb,
+			       tbmaster_prodmast prd
+			WHERE  spb.spb_prdcd = prd.prd_prdcd (+)
+			       AND spb.spb_id = spb.spb_id (+) 

@@ -1,0 +1,116 @@
+.container {
+      width: 100%;
+      /* Mengatur container agar memenuhi lebar layar */
+      max-width: 1800px;
+      /* Mengatur batas maksimal lebar container */
+      margin: 0 auto;
+      padding: 0 0px;
+      display: flex;
+      /* Membuat container menjadi flex container */
+      justify-content: space-between;
+      /* Menyebarkan elemen dalam container secara merata */
+      flex-wrap: wrap;
+      /* Menambahkan wrap agar elemen tidak saling bertumpuk */
+    }
+
+    .card {
+      flex: 1 1 100%;
+      /* Membuat card fleksibel untuk memenuhi ruang */
+      max-width: 100%;
+      margin: 0px;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(125, 166, 255, 0.1);
+    }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .dashboard-section {
+      flex: 1;
+      min-width: 0;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .bayang {
+      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+      border-radius: 4px;
+    }
+
+    /* Background classes */
+    .bg-totalpb {
+      background: linear-gradient(45deg, #1461b9, #31639d);
+    }
+
+    .bg-batal {
+      background: linear-gradient(45deg, #ff0000, #d9a2a2);
+      float: none !important;
+      margin-left: 3rem;
+    }
+
+    .bg-send {
+      background: linear-gradient(45deg, #23a98e, #1c7a68);
+    }
+
+    .bg-pick {
+      background: linear-gradient(45deg, #e1ab5d, #b37d2e);
+    }
+
+    .bg-pack {
+      background: linear-gradient(45deg, #a92394, #441c7a);
+    }
+
+    .bg-struk {
+      background: linear-gradient(45deg, #a9234a, #7a1c5d);
+    }
+
+    .bg-sstruk {
+      background: linear-gradient(45deg, #64a923, #4a7e19);
+    }
+
+    /* Responsive behavior for mobile */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+
+    /* Modifikasi untuk backdrop yang lebih terang */
+    .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.1) !important;
+      /* Mengurangi kegelapan */
+    }
+
+    /* Menyempurnakan z-index agar modal tetap muncul di atas */
+    .modal {
+      z-index: 1051 !important;
+      /* Modal tetap muncul di atas backdrop */
+    }
+
+    /* Pastikan backdrop modal tidak menghalangi interaksi */
+    .modal-backdrop {
+      pointer-events: none;
+    }
+
+    /* Mengubah ukuran modal secara custom */
+    .modal-dialog {
+      max-width: 70%;
+      /* Atur lebar modal sesuai kebutuhan */
+    }
+
+    .modal-content {
+      height: auto;
+      /* Atur tinggi modal jika diperlukan */
+    }

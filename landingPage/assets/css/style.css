@@ -1,0 +1,54 @@
+/* public/assets/css/dashboard.css */
+
+/* Anda bisa tambahkan komentar di sini untuk menjelaskan bagian-bagian CSS */
+
+.section-body .card {
+  margin-bottom: 20px;
+}
+
+.card-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-success {
+  font-weight: 600;
+}
+
+.ellipsis {
+  cursor: pointer;
+}
+
+.table td,
+.table th {
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.section-header h1 {
+  font-size: 1.5rem;
+}
+
+.badge {
+  font-size: 0.8rem;
+}
+
+.loading-data {
+  opacity: 0.6;
+  transition: opacity 0.3s ease-in-out;
+  font-style: italic;
+}
+
+.loading-row td {
+  background-color: #f9f9f9;
+  color: #888;
+}
+
+/* Tambahan untuk grafik */
+.chart-container {
+  position: relative;
+  height: 400px;
+  /* Atur tinggi grafik sesuai keinginan */
+  width: 100%;
+}
