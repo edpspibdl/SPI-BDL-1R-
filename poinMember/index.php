@@ -4,18 +4,20 @@ require_once '../helper/connection.php'; // Pastikan connection.php berisi konek
 
 // Menggunakan exception handling pada query
 try {
-    $query = "SELECT * FROM (
+    $query = "   SELECT *
+FROM (
     SELECT KD_MEMBER,    
            NAMA,    
            HP_CUSTOMER,    
            HP_MYPOIN,    
-		   CASE 
+           CASE 
                WHEN HP_CUSTOMER = HP_MYPOIN THEN 'Sama' 
                ELSE 'Tidak Sama' 
            END AS NO_HP_VS_MYPOIN,		   
            COALESCE(PEROLEHAN_POIN, 0) AS PEROLEHAN_POIN,    
            COALESCE(PENUKARAN_POIN, 0) AS PENUKARAN_POIN,    
-           COALESCE(PEROLEHAN_POIN, 0) - COALESCE(PENUKARAN_POIN, 0) AS ESTIMASI    
+           COALESCE(PEROLEHAN_POIN, 0) - COALESCE(PENUKARAN_POIN, 0) AS ESTIMASI,
+           sub4.kunjungan_terakhir
     FROM (    
         SELECT 
             POR_KODEMEMBER AS KD_MEMBER,       
@@ -23,9 +25,11 @@ try {
             CUS_HPMEMBER AS HP_CUSTOMER,      
             POR_KODEMYPOIN AS HP_MYPOIN,      
             SUM(POR_PEROLEHANPOINT) AS PEROLEHAN_POIN,      
-            PENUKARAN_POIN      
+            PENUKARAN_POIN,
+            CUS_KODEMEMBER
         FROM TBTR_PEROLEHANMYPOIN       
-        LEFT JOIN TBMASTER_CUSTOMER ON POR_KODEMEMBER = CUS_KODEMEMBER 
+        LEFT JOIN TBMASTER_CUSTOMER 
+               ON POR_KODEMEMBER = CUS_KODEMEMBER 
         LEFT JOIN (      
             SELECT 
                 POT_KODEMEMBER AS RD_MEMBER,       
@@ -34,10 +38,20 @@ try {
             FROM TBTR_PENUKARANMYPOIN      
             WHERE POT_CREATE_DT >= CURRENT_DATE - INTERVAL '2 YEAR'  -- TANGGAL PENUKARAN
             GROUP BY POT_KODEMEMBER, POT_KODEMYPOIN      
-        ) GF ON POR_KODEMEMBER = RD_MEMBER AND POR_KODEMYPOIN = RD_MYPOIN      
-        WHERE POR_FLAGUPDATE = 'Y' AND POR_CREATE_DT >= CURRENT_DATE - INTERVAL '2 YEAR' -- TANGGAL PEROLEHAN
-        GROUP BY POR_KODEMEMBER, CUS_NAMAMEMBER, CUS_HPMEMBER, POR_KODEMYPOIN, PENUKARAN_POIN
+        ) GF 
+               ON POR_KODEMEMBER = RD_MEMBER 
+              AND POR_KODEMYPOIN = RD_MYPOIN   
+        WHERE POR_FLAGUPDATE = 'Y' 
+          AND POR_CREATE_DT >= CURRENT_DATE - INTERVAL '2 YEAR' -- TANGGAL PEROLEHAN
+        GROUP BY POR_KODEMEMBER, CUS_NAMAMEMBER, CUS_HPMEMBER, POR_KODEMYPOIN, PENUKARAN_POIN, CUS_KODEMEMBER
     ) GB 
+    LEFT JOIN (
+        SELECT trjd_cus_kodemember, 
+               MAX(trjd_transactiondate) AS kunjungan_terakhir          
+        FROM tbtr_jualdetail 
+        GROUP BY trjd_cus_kodemember
+    ) sub4 
+           ON GB.KD_MEMBER = sub4.trjd_cus_kodemember    
 ) DF
 WHERE ESTIMASI >= 0
 ORDER BY ESTIMASI DESC";
@@ -111,6 +125,7 @@ ORDER BY ESTIMASI DESC";
                   <th style="text-align:left">PEROLEHAN</th>
                   <th style="text-align:left">PENUKARAN</th>
                   <th style="text-align:left">SISA POIN</th>
+                  <th style="text-align:left">BELANJA TERAKHIR</th>
                 </tr>
               </thead>
               <tbody>
@@ -127,6 +142,7 @@ ORDER BY ESTIMASI DESC";
                   echo "<td>" . htmlspecialchars($row['perolehan_poin']) . "</td>";
                   echo "<td>" . htmlspecialchars($row['penukaran_poin']) . "</td>";
                   echo "<td>" . htmlspecialchars($row['estimasi']) . "</td>";
+                  echo "<td>" . htmlspecialchars($row['kunjungan_terakhir']) . "</td>";
                   
                   echo "</tr>";
                   $nomor++;

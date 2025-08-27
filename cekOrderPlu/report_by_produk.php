@@ -10,7 +10,9 @@ $tanggalSelesai = $_GET['tanggalSelesai'] ?? date('Y-m-d');
 $pluInput = $_GET['plu'] ?? '';
 $plu = str_pad(ltrim($pluInput, '0'), 7, '0', STR_PAD_LEFT);
 
-// Query SQL
+// Ambil 6 digit depan untuk filter variasi
+$prefixPLU = $plu !== '' ? substr($plu, 0, 6) : '';
+
 $query = "
 SELECT
     CASE
@@ -34,9 +36,13 @@ SELECT
     D.obi_qtyrealisasi AS QTY_REALISASI,
     COALESCE(P.TIPE_BAYAR_AGGREGATED, 'TUNAI') AS TIPE_BAYAR
 FROM tbtr_obi_h H
-LEFT JOIN tbmaster_customer C ON C.cus_kodemember = H.OBI_KDMEMBER
-LEFT JOIN tbtr_obi_d D ON D.obi_notrans = H.obi_notrans AND D.obi_tgltrans = H.obi_tgltrans
-LEFT JOIN tbmaster_prodmast PRD ON D.obi_prdcd = PRD.prd_prdcd
+LEFT JOIN tbmaster_customer C 
+    ON C.cus_kodemember = H.OBI_KDMEMBER
+LEFT JOIN tbtr_obi_d D 
+    ON D.obi_notrans = H.obi_notrans 
+   AND D.obi_tgltrans = H.obi_tgltrans
+LEFT JOIN tbmaster_prodmast PRD 
+    ON D.obi_prdcd = PRD.prd_prdcd
 LEFT JOIN (
     SELECT
         NO_PB,
@@ -45,14 +51,15 @@ LEFT JOIN (
     GROUP BY NO_PB
 ) P ON P.NO_PB = H.OBI_NOPB
 WHERE
-    D.obi_prdcd LIKE :pluFilter
+    (:prefixPLU = '' OR D.obi_prdcd LIKE :prefixPLUPattern)
     AND H.obi_tglpb BETWEEN :tanggalMulai AND :tanggalSelesai
 ORDER BY H.OBI_NOPB ASC
 ";
 
 $stmt = $conn->prepare($query);
 $stmt->execute([
-    ':pluFilter' => $plu . '%',
+    ':prefixPLU' => $prefixPLU,
+    ':prefixPLUPattern' => $prefixPLU === '' ? '' : $prefixPLU . '_',
     ':tanggalMulai' => $tanggalMulai,
     ':tanggalSelesai' => $tanggalSelesai,
 ]);
@@ -91,24 +98,15 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         text-align: left !important;
     }
 
-
     /* Tombol DataTables */
     .dt-buttons {
         margin-bottom: 10px;
     }
 
     /* Align Utilities */
-    .text-right {
-        text-align: right !important;
-    }
-
-    .text-center {
-        text-align: center !important;
-    }
-
-    .text-left {
-        text-align: left !important;
-    }
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .text-left { text-align: left !important; }
 
     /* Footer Total */
     #table-1 tfoot tr,
@@ -191,7 +189,7 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <tr>
                                         <td colspan="11" class="text-center">Tidak ada data</td>
                                     </tr>
-                                    <?php else :
+                                <?php else :
                                     $no = 1;
                                     foreach ($data as $row) : ?>
                                         <tr>
@@ -207,7 +205,7 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <td align="right"><?= number_format($row['qty_realisasi']) ?></td>
                                             <td><?= htmlspecialchars($row['tipe_bayar']) ?></td>
                                         </tr>
-                                <?php endforeach;
+                                    <?php endforeach;
                                 endif; ?>
                             </tbody>
                         </table>
@@ -225,15 +223,13 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         const table = $('#table-1').DataTable({
             responsive: false,
             lengthMenu: [10, 25, 50, 100],
-            buttons: [{
-                    extend: 'copy',
-                    text: 'Copy'
-                },
-                {
-                    extend: 'excel',
-                    text: 'Excel',
+            buttons: [
+                { extend: 'copy', text: 'Copy' },
+                { 
+                    extend: 'excel', 
+                    text: 'Excel', 
                     filename: 'History_Produk_' + new Date().toISOString().split('T')[0],
-                    title: null
+                    title: null 
                 },
             ],
             dom: 'Bfrtip'

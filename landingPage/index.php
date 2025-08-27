@@ -105,19 +105,43 @@ $server_status = ($db_status === 'prod') ? 'PRODUCTION' : 'SIMULASI';
     </div>
 
     <div class="row mt-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h4>Sales & Margin Bulanan (12 Bulan Terakhir)</h4>
-          </div>
-          <div class="card-body">
-            <div class="chart-container">
-              <canvas id="monthlySalesChart"></canvas>
-            </div>
-          </div>
+  <!-- Kolom Grafik -->
+  <div class="col-lg-8 col-md-8 col-sm-12">
+    <div class="card">
+      <div class="card-header">
+        <h4>Sales & Margin Bulanan (12 Bulan Terakhir)</h4>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="monthlySalesChart"></canvas>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Kolom Alert / Notifikasi -->
+  <div class="col-lg-4 col-md-4 col-sm-12">
+    <div class="card">
+      <div class="card-header">
+        <h4>Alert / Notifikasi</h4>
+      </div>
+      <div class="card-body">
+      <ul class="list-group">
+        <li class="list-group-item list-group-item-danger">
+          <i class="fas fa-bell"></i> Margin Minus
+        </li>
+        <li class="list-group-item list-group-item-warning">
+          <i class="fas fa-danger"></i> Stok Menipis
+        </li>
+        <li class="list-group-item list-group-item-info">
+          <i class="fas fa-chart-line text-info"></i> Penjualan Turun
+        </li>
+      </ul>
+    </div>
+    </div>
+  </div>
+</div>
+
   </div>
 </section>
 
