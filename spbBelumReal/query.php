@@ -61,8 +61,7 @@ try {
         LEFT JOIN 
             TBMASTER_USER ON USERID = SPB_CREATE_BY
         WHERE 
-            SPB_CREATE_DT::date = CURRENT_DATE 
-            AND SPB_QTY <> 0
+            SPB_QTY <> 0
     ) AS spb_data
     WHERE 
         PLU IS NOT NULL

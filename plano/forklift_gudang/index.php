@@ -21,7 +21,9 @@
   <head>
     <?php include '../includes/head.php'; ?>
 	<style>
-	@media screen and (max-width: 460px) {
+
+
+	@media screen and (max-width: 460px) {}
  
 	h2 {
 		padding:0px;
@@ -55,10 +57,10 @@
             <?php 
               //$spbBelumRealisasi = 0;
               if ($spbBelumRealisasi > 0) {
-                echo '<a href="../forklift-belum-realisasi" class="btn btn-default btn-sm pull-right bayang" role="button">';
+                echo '<a href="../forklift_gudang_belum_realisasi" class="btn btn-default btn-sm pull-right bayang" role="button">';
                 echo '<span class="badge">';
                 echo $spbBelumRealisasi; 
-                echo '</span> Penurunan belum direalisasi</a>';
+                echo '</span> Penurunan gudang belum direalisasi</a>';
               }
             ?>
             

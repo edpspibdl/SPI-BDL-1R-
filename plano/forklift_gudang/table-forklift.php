@@ -63,7 +63,7 @@
                   $infoTertunda = '<span class="label label-danger"> Kemarin</span>';
                   break;
                 default:
-                  $infoTertunda = '<span class="label label-danger"> ' . $row['spb_hari_tertunda'] . ' hari yang lalu</span>';
+                  $infoTertunda = '<span class="label label-danger"> ' . $row['spb_hari_tertunda'] . ' yang lalu</span>';
               }
 
               print '<tr>';

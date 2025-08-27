@@ -5,7 +5,7 @@
 				WHERE  spb_prdcd IS NOT NULL
 				       AND spb_lokasiasal LIKE '%S%'
 				       AND spb_lokasiasal NOT LIKE '%C%'
-				       AND spb_status = '0' ";
+				       AND spb_status = '3' ";
 	/* 
 	spb_status
 		null: kondisi awal
