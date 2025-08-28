@@ -1,6 +1,4 @@
 <?php
-
-
 ob_start(); // Mulai output buffering
 
 // Daftar IP yang diizinkan
@@ -18,18 +16,31 @@ foreach ($allowed_ips as $ip_prefix) {
 
 // Jika IP tidak diizinkan, arahkan ke halaman error yang benar
 if (!$allowed) {
-  header("Location: ../pageError/notaccess.php"); // Pastikan path ini sesuai struktur proyek
+  header("Location: ../pageError/notaccess.php");
   exit;
 }
 
-ob_end_flush(); // Kirim output hanya jika tidak ada redirect
-// index.php atau dashboard.php
-require_once '../layout/_top.php'; // Memuat header, navbar, dll.
-require_once '../helper/connection.php'; // Mungkin tidak perlu di sini lagi jika semua interaksi database via API
+ob_end_flush();
 
-// Logika PHP minimal, hanya untuk data statis awal atau konfigurasi
+// index.php atau dashboard.php
+require_once '../layout/_top.php'; 
+require_once '../helper/connection.php'; // koneksi PDO ada di sini
+
+// Logika PHP minimal
 $db_status = $_SESSION['db_target'] ?? 'prod';
 $server_status = ($db_status === 'prod') ? 'PRODUCTION' : 'SIMULASI';
+
+// =====================
+// Hitung jumlah Margin Minus (pakai PDO)
+// =====================
+$marmin_count = 0;
+try {
+  $stmt = $conn->query("SELECT COUNT(*) as cnt FROM marmin"); // sesuaikan nama tabel/view
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  $marmin_count = $row['cnt'] ?? 0;
+} catch (PDOException $e) {
+  $marmin_count = 0; // fallback kalau query error
+}
 ?>
 
 <link rel="stylesheet" href="./assets/css/style.css">
@@ -105,42 +116,61 @@ $server_status = ($db_status === 'prod') ? 'PRODUCTION' : 'SIMULASI';
     </div>
 
     <div class="row mt-4">
-  <!-- Kolom Grafik -->
-  <div class="col-lg-8 col-md-8 col-sm-12">
-    <div class="card">
-      <div class="card-header">
-        <h4>Sales & Margin Bulanan (12 Bulan Terakhir)</h4>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="monthlySalesChart"></canvas>
+      <!-- Kolom Grafik -->
+      <div class="col-lg-8 col-md-8 col-sm-12">
+        <div class="card">
+          <div class="card-header">
+            <h4>Sales & Margin Bulanan (12 Bulan Terakhir)</h4>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="monthlySalesChart"></canvas>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Kolom Alert / Notifikasi -->
-  <div class="col-lg-4 col-md-4 col-sm-12">
-    <div class="card">
-      <div class="card-header">
-        <h4>Alert / Notifikasi</h4>
-      </div>
-      <div class="card-body">
-      <ul class="list-group">
-        <li class="list-group-item list-group-item-danger">
-          <i class="fas fa-bell"></i> Margin Minus
+      <!-- Kolom Alert / Notifikasi -->
+<div class="col-lg-4 col-md-4 col-sm-12">
+  <div class="card shadow">
+    <div class="card-header text-white">
+      <h4><i class="fas fa-exclamation-circle"></i> Alert / Notifikasi</h4>
+    </div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+
+        <!-- Margin Minus -->
+        <a href="../folder/marmin.php" 
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <span class="text-danger font-weight-bold">
+            <i class="fas fa-bell fa-shake"></i> Margin Minus
+          </span>
+          <span class="badge badge-danger rounded-pill px-3 py-2">
+            <?php echo $marmin_count; ?>
+          </span>
+        </a>
+
+        <!-- Stok Menipis -->
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span class="text-warning font-weight-bold">
+            <i class="fas fa-exclamation-triangle"></i> Stok Menipis
+          </span>
+          <span class="badge badge-warning rounded-pill px-3 py-2">12</span>
         </li>
-        <li class="list-group-item list-group-item-warning">
-          <i class="fas fa-danger"></i> Stok Menipis
-        </li>
-        <li class="list-group-item list-group-item-info">
-          <i class="fas fa-chart-line text-info"></i> Penjualan Turun
+
+        <!-- Penjualan Turun -->
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span class="text-info font-weight-bold">
+            <i class="fas fa-chart-line"></i> Penjualan Turun
+          </span>
+          <span class="badge badge-info rounded-pill px-3 py-2">5</span>
         </li>
       </ul>
     </div>
-    </div>
   </div>
 </div>
+
+    </div>
 
   </div>
 </section>

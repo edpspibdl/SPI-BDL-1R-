@@ -121,7 +121,20 @@ FROM TBTR_PROMOMD
 WHERE CURRENT_DATE BETWEEN DATE(PRMD_TGLAWAL) AND DATE(PRMD_TGLAKHIR)
 )PRMD ON HRG_N.PRD_PRDCD=PRMD.PLUMD)MARGINM WHERE (MARGIN_A<0 OR MARGIN_A_MD<0)";
 
-    $stmt = $conn->query($query); // Eksekusi query dengan PDO
+    // eksekusi query utama
+    $stmt = $conn->query($query);
+
+    // hitung total
+    $countQuery = "SELECT COUNT(*) as total FROM (" . $query . ") AS sub";
+    $countStmt = $conn->query($countQuery);
+    $countRow = $countStmt->fetch(PDO::FETCH_ASSOC);
+    $totalMarmin = $countRow['total'];
+
+    // mode count untuk dashboard
+    if (isset($_GET['count'])) {
+        echo $totalMarmin;
+        exit;
+    }
 
 } catch (PDOException $e) {
     die("Error: " . $e->getMessage());
@@ -170,7 +183,7 @@ WHERE CURRENT_DATE BETWEEN DATE(PRMD_TGLAWAL) AND DATE(PRMD_TGLAKHIR)
 
 <section class="section">
   <div class="section-header d-flex justify-content-between">
-    <h1>REKAP MARGIN MINUS</h1>
+    <h1>REKAP MARGIN MINUS (<?php echo $totalMarmin; ?> Produk)</h1>
     <a href="../LaporanLaporan/index.php" class="btn btn-primary">BACK</a>
   </div>
   <div class="row">

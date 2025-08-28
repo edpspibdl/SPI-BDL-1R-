@@ -34,7 +34,7 @@ try {
     prd.prd_flagomi            AS lks_flagomi
 FROM 
     tbmaster_lokasi lks
-JOIN 
+LEFT JOIN 
     tbmaster_prodmast prd ON lks.lks_prdcd = prd.prd_prdcd
 LEFT JOIN 
     (SELECT * FROM tbmaster_stock WHERE st_lokasi = '01') st ON lks.lks_prdcd = st.st_prdcd
@@ -51,7 +51,11 @@ LEFT JOIN
          hgb.hgb_tipe = '2') hgb ON lks.lks_prdcd = hgb.hgb_prdcd
 WHERE 
     lks.lks_prdcd IS NOT NULL
-      AND lks_jenisrak = :jenisrak
+      AND (
+    (lks_jenisrak IN ('D','N') AND :jenisrak = 'D')
+ OR (lks_jenisrak = 'S' AND :jenisrak = 'S')
+)
+
 ORDER BY 
     lks.lks_koderak,
     lks.lks_kodesubrak,
