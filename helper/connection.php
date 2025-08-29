@@ -1,9 +1,18 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start(); // pastikan session aktif
+}
 
+// kalau ada request untuk switch DB (via GET/POST)
+if (isset($_GET['db'])) {
+    $_SESSION['db_target'] = $_GET['db'];
+} elseif (isset($_POST['db_target'])) {
+    $_SESSION['db_target'] = $_POST['db_target'];
+}
 
-// Set default database connection target if not set
+// Set default database connection target kalau belum ada
 if (!isset($_SESSION['db_target'])) {
-    $_SESSION['db_target'] = 'prod'; // default connection to 'prod'
+    $_SESSION['db_target'] = 'prod'; // default 'prod'
 }
 
 $db_target = $_SESSION['db_target'];
