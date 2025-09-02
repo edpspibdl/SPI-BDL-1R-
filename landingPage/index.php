@@ -130,7 +130,7 @@ try {
         </div>
       </div>
 
-      <!-- Kolom Alert / Notifikasi -->
+      <!-- Kolom Alert / Notifikasi
 <div class="col-lg-4 col-md-4 col-sm-12">
   <div class="card shadow">
     <div class="card-header text-white">
@@ -139,8 +139,8 @@ try {
     <div class="card-body">
       <ul class="list-group list-group-flush">
 
-        <!-- Margin Minus -->
-        <a href="../folder/marmin.php" 
+        Margin Minus
+        <a href="../Margin/marginMinus.php" 
            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
           <span class="text-danger font-weight-bold">
             <i class="fas fa-bell fa-shake"></i> Margin Minus
@@ -150,16 +150,19 @@ try {
           </span>
         </a>
 
-        <!-- Stok Menipis -->
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <span class="text-warning font-weight-bold">
-            <i class="fas fa-exclamation-triangle"></i> Stok Menipis
+        <!-- Margin Minus -->
+        <!-- <a href="../barkos/report.php" 
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <span class="text-danger font-weight-bold">
+            <i class="fas fa-bell fa-shake"></i> Barkos
           </span>
-          <span class="badge badge-warning rounded-pill px-3 py-2">12</span>
-        </li>
+          <span class="badge badge-danger rounded-pill px-3 py-2">
+            <?php echo $count_barkos; ?>
+          </span>
+        </a> -->
 
         <!-- Penjualan Turun -->
-        <li class="list-group-item d-flex justify-content-between align-items-center">
+        <!-- <li class="list-group-item d-flex justify-content-between align-items-center">
           <span class="text-info font-weight-bold">
             <i class="fas fa-chart-line"></i> Penjualan Turun
           </span>
@@ -168,10 +171,8 @@ try {
       </ul>
     </div>
   </div>
-</div>
-
+</div> --> 
     </div>
-
   </div>
 </section>
 

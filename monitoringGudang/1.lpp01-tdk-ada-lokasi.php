@@ -63,7 +63,7 @@ WHERE
             UNION
             SELECT lso_prdcd AS PLU
             FROM tbtr_lokasi_so
-            WHERE DATE(LSO_TGLSO) = '2024-06-23'
+            WHERE DATE(LSO_TGLSO) = '2025-09-25'
             AND lso_lokasi = '01'
         ) AS combined_plu
     )
@@ -99,13 +99,13 @@ ORDER BY st_prdcd ASC
                 $no++;  ?>
                 <tr>
                     <td> <?= $no ?> </td>
-                    <td> <?= $row["PRD_KODEDIVISI"] ?> </td>
-                    <td> <?= $row["ST_PRDCD"] ?> </td>
-                    <td> <?= $row["PRD_DESKRIPSIPANJANG"] ?> </td>
-                    <td> <?= $row["FRAC"] ?> </td>
-                    <td> <?= $row["PRD_KODETAG"] ?> </td>
-                    <td> <?= $row["FLAG_MAIN"] ?> </td>
-                    <td> <?= number_format($row["ST_SALDOAKHIR"], 0, '.', ',') ?> </td>
+                    <td> <?= $row["prd_kodedivisi"] ?> </td>
+                    <td> <?= $row["st_prdcd"] ?> </td>
+                    <td> <?= $row["prd_deskripsipanjang"] ?> </td>
+                    <td> <?= $row["frac"] ?> </td>
+                    <td> <?= $row["prd_kodetag"] ?> </td>
+                    <td> <?= $row["flag_main"] ?> </td>
+                    <td> <?= number_format($row["st_saldoakhir"], 0, '.', ',') ?> </td>
                 </tr>
             <?php } ?>
         </tbody>
