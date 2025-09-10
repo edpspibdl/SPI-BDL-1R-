@@ -8,18 +8,18 @@ $tempSavePath = 'D:\\LAPORAN PAGI\\DISKON MINUS\\';
 
 // Memeriksa apakah folder ada, jika tidak, buat folder tersebut
 if (!file_exists($tempSavePath)) {
-    // Parameter ketiga 'true' berarti akan membuat direktori secara rekursif jika parent directory tidak ada
-    // Parameter kedua '0777' adalah izin folder (baca, tulis, eksekusi untuk semua).
-    // Anda mungkin ingin menggunakan izin yang lebih ketat seperti 0755 di lingkungan produksi.
-    if (!mkdir($tempSavePath, 0777, true)) {
-        die("Gagal membuat folder: $tempSavePath. Pastikan PHP memiliki izin untuk membuat folder.");
-    }
-    error_log("Folder berhasil dibuat: $tempSavePath");
+  // Parameter ketiga 'true' berarti akan membuat direktori secara rekursif jika parent directory tidak ada
+  // Parameter kedua '0777' adalah izin folder (baca, tulis, eksekusi untuk semua).
+  // Anda mungkin ingin menggunakan izin yang lebih ketat seperti 0755 di lingkungan produksi.
+  if (!mkdir($tempSavePath, 0777, true)) {
+    die("Gagal membuat folder: $tempSavePath. Pastikan PHP memiliki izin untuk membuat folder.");
+  }
+  error_log("Folder berhasil dibuat: $tempSavePath");
 }
 
 // Memeriksa apakah folder dapat ditulis (setelah dipastikan ada atau dibuat)
 if (!is_writable($tempSavePath)) {
-    die("Folder tidak dapat ditulisi: $tempSavePath. Periksa izin folder.");
+  die("Folder tidak dapat ditulisi: $tempSavePath. Periksa izin folder.");
 }
 
 // Query data dari database
@@ -33,31 +33,35 @@ $query = "SELECT prd_kodedivisi AS div, prmd_prdcd AS plu, prd_deskripsipanjang 
 
 
 try {
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
+  $stmt = $conn->prepare($query);
+  $stmt->execute();
 
-    // Ambil kolom pertama untuk menentukan header
-    $columns = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$columns) {
-        die("Tidak ada data yang ditemukan.");
-    }
+  // Ambil kolom pertama untuk menentukan header
+  $columns = $stmt->fetch(PDO::FETCH_ASSOC);
 
+  // Tentukan nama file dengan tanggal saat ini
+  $date = date('Y-m-d');
+  $filename = "DISKON_MINUS_SPI_BDL_1R_$date.xlsx";
+  $filePath = $tempSavePath . $filename;  // Menentukan lokasi penyimpanan file sementara
+
+  // Inisialisasi objek writer
+  $writer = new XLSXWriter();
+
+  // Jika data ditemukan
+  if ($columns) {
     // Ambil nama kolom untuk header Excel
     $columnNames = array_map('strtoupper', array_keys($columns));
-
-    // Tentukan nama file dengan tanggal saat ini
-    $date = date('Y-m-d');
-    $filename = "DISKON_MINUS_SPI_BDL_1R_$date.xlsx";
-    $filePath = $tempSavePath . $filename;  // Menentukan lokasi penyimpanan file sementara
-
-    // Inisialisasi objek writer
-    $writer = new XLSXWriter();
     $writer->writeSheetHeader('Sheet1', array_combine($columnNames, array_fill(0, count($columnNames), 'string')));
 
     // Loop untuk menulis setiap row ke Excel
     do {
-        $writer->writeSheetRow('Sheet1', $columns);
+      $writer->writeSheetRow('Sheet1', $columns);
     } while ($columns = $stmt->fetch(PDO::FETCH_ASSOC));
+     } else {
+    // Jika data kosong, buat file dengan hanya header
+    $columnNames = ['DIV', 'PLU', 'DESKRIPSI', 'TAG', 'FRAC', 'UNIT', 'STOK', 'HRG_NORMAL', 'HRG_PROMO', 'DISKON'];
+    $writer->writeSheetHeader('Sheet1', array_combine($columnNames, array_fill(0, count($columnNames), 'string')));
+  }
 
     // Simpan file sementara di server
     if ($writer->writeToFile($filePath)) {
