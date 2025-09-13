@@ -26,56 +26,9 @@ require_once '../helper/connection.php';
         text-align: center;
     }
 
-    /* Frame Container */
-    .frame-container {
-        width: 100%;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        margin-top: 20px;
-    }
-
-    /* Frame Kertas */
-    .frame-kertas {
-        width: 210mm;
-        height: 297mm;
-        background: white;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        position: relative;
-        overflow: auto;
-        margin: auto;
-    }
-
-    .kop-surat {
-        text-align: center;
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .garis {
-        border-bottom: 2px solid black;
-        width: 100%;
-        margin-bottom: 15px;
-    }
-
-    .tanggal-cetak {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
     .iframe-container {
         width: 100%;
-        height: 100%;
+        height: 600px;
         border: none;
     }
 
@@ -85,35 +38,11 @@ require_once '../helper/connection.php';
         gap: 10px;
         margin-bottom: 10px;
     }
-
-    @media print {
-        body {
-            background: none;
-        }
-        .frame-container {
-            background: none;
-            box-shadow: none;
-            padding: 0;
-        }
-        .frame-kertas {
-            box-shadow: none;
-            width: 100%;
-            height: auto;
-            margin: 0;
-            padding: 0;
-        }
-        .kop-surat {
-            display: block !important;
-        }
-        .tanggal-cetak {
-            display: block !important;
-        }
-    }
 </style>
 
 <section class="section">
     <div class="section-header d-flex justify-content-between">
-        <h1>FORM SO HARIAN</h1>
+        <h1>FORM CEK PRODUK BARU</h1>
     </div>
     <div id="load"></div>
 
@@ -121,7 +50,7 @@ require_once '../helper/connection.php';
     <div id="inputContainer" class="container container-custom mt-5">
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="mb-0">STOK OPNAME HARIAN</h3>
+                <h3 class="mb-0">CEK PRODUK BARU</h3>
                 <div class="note mt-2">
                     ⚠️ Harap masukkan pelan-pelan! ⚠️
                 </div>
@@ -144,10 +73,6 @@ require_once '../helper/connection.php';
                         <input type="file" class="form-control" id="excelFile" name="excelFile" accept=".xls,.xlsx">
                         <div class="info-text">
                             File harus berisi daftar PLU di kolom pertama. <br>
-                            <i>Contoh isi Excel: <br>
-                            0000850 <br>
-                            0060410 <br>
-                            357330</i>
                         </div>
                     </div>
 
@@ -160,31 +85,15 @@ require_once '../helper/connection.php';
         </div>
     </div>
 
-    <!-- HASIL STOK OPNAME -->
-    <div id="resultCard" class="frame-container mt-4">
-        
-        <!-- TOMBOL CETAK & KEMBALI DI ATAS -->
-        <div class="btn-group">
-            <button id="backButton" class="fas fa-backward btn btn-light btn-sm"> Kembali</button>
-            <button id="printButton" class="fas fa-print btn btn-success btn-sm"> Cetak</button>
-        </div>
+    <!-- HASIL -->
+    <div id="resultCard" class="mt-4" style="display:none;">
 
-        <div class="frame-kertas">
-            <div class="kop-surat" id="kopCetak">
-                STOCK POINT INDOGROSIR METRO 1R
-            </div>
-            <div class="tanggal-cetak" id="tanggalCetak">
-                Tanggal Cetak: <?= date('d-m-Y') ?>
-            </div>
-            <div class="garis"></div>
+        <iframe id="resultFrame" name="resultFrame" class="iframe-container"></iframe>
 
-            <iframe id="resultFrame" name="resultFrame" class="iframe-container"></iframe>
-
-            <!-- Hidden form untuk POST ke iframe -->
-            <form id="hiddenForm" method="POST" target="resultFrame" action="tampildata.php" style="display:none;">
-                <input type="hidden" name="plu" id="hiddenPlu">
-            </form>
-        </div>
+        <!-- Hidden form untuk POST ke iframe -->
+        <form id="hiddenForm" method="POST" target="resultFrame" action="tampildata.php" style="display:none;">
+            <input type="hidden" name="plu" id="hiddenPlu">
+        </form>
     </div>
 </section>
 
@@ -204,7 +113,7 @@ require_once '../helper/connection.php';
             }
 
             $("#inputContainer").hide();
-            $("#resultCard").fadeIn().css("display", "flex"); 
+            $("#resultCard").fadeIn(); 
 
             // masukkan ke hidden form lalu submit via POST ke iframe
             $("#hiddenPlu").val(pluValue);

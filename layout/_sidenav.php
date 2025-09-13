@@ -187,6 +187,7 @@
           <li class="list-group-item"><a href="../laporanLaporan/">Laporan Laporan</a></li>
           <li class="list-group-item"><a href="../cekOrderPlu/">Cek PLU Order</a></li>
           <li class="list-group-item"><a href="../pembatasanItem/">Pembatasan Item</a></li>
+          <li class="list-group-item"><a href="../cekProdukBaru/">Cek Produk Baru</a></li>
         </ul>
         <hr>
         <h6 class="menu-heading">Member</h6>
