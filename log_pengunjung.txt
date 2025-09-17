@@ -10098,3 +10098,6 @@
 [2025-09-17 10:05:35] IP: 192.168.170.24 | Page: /edpweb/soHarian/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
 [2025-09-17 10:17:51] IP: 192.168.170.23 | Page: /edpweb/cekOrderPlu/report_by_produk.php?tanggalMulai=2025-09-16&tanggalSelesai=2025-09-17&plu=1758850 | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
 [2025-09-17 10:18:14] IP: 192.168.170.23 | Page: /edpweb/landingPage/index.php | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-17 10:41:20] IP: 192.168.170.24 | Page: /edpweb/dashboard/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-17 10:42:49] IP: 192.168.170.24 | Page: /edpweb/monitoringED/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-17 10:42:53] IP: 192.168.170.24 | Page: /edpweb/monitoringED/exp_rak_storage.php | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
