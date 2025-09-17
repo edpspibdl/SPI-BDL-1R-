@@ -67,7 +67,7 @@ try {
             st_saldoakhir LPP
         FROM TBMASTER_STOCK WHERE ST_LOKASI='01') as st ON PLU = ST_PRDCD
     WHERE DEPT <>'14' AND ALAMAT LIKE '%S%' AND QTY_LKS <>'0'
-    ORDER BY 8,1,4 ASC";
+    ORDER BY 9 ASC";
 
           $stmt = $conn->query($query);
 } catch (PDOException $e) {

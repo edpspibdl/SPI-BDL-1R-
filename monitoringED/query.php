@@ -72,7 +72,7 @@ try {
         WHERE ST_LOKASI = '01'
     ) AS st ON PLU = ST_PRDCD
     WHERE DEPT <> '14' AND ALAMAT LIKE '%B%' AND QTY_LKS <> '0'
-    ORDER BY 8,1,4 ASC";
+    ORDER BY 9 ASC";
 
           $stmt = $conn->query($query);
 } catch (PDOException $e) {
