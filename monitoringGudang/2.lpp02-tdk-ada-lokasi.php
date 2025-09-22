@@ -77,7 +77,7 @@ WHERE
         FROM
             tbtr_lokasi_so
         WHERE
-            lso_tglso::DATE = '2025-11-23'
+            lso_tglso::DATE = '2025-09-23'
             AND lso_lokasi = '02'
     )
 ORDER BY

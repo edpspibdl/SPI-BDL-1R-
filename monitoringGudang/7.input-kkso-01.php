@@ -24,7 +24,7 @@ JOIN (
         st_lokasi = '01'
 ) AS stock_table ON stock_table.st_prdcd = lso_prdcd
 WHERE
-    lso_tglso::date = '2024-06-23'
+    lso_tglso::date = '2025-09-23'
     AND lso_flagsarana = 'K'
     AND lso_koderak LIKE 'P%'
 ORDER BY
