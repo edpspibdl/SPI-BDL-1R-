@@ -21,7 +21,7 @@ require_once '../helper/connection.php';
       <a href="../poOut/poOut.php" class="btn btn-primary mr-2">PO OUT</a>
       <a href="../Margin/marminAll.php" class="btn btn-primary mr-2">Margin All + Minus</a>
       <a href="../diskonminus/diskonMinus.php" class="btn btn-primary mr-2">Diskon Minus</a>
-      <a href="../lppvsPlano/lppvsPlano.php" class="btn btn-primary mr-2">LPP VS PLANO</a>
+      <a href="../lppvsPlano/lpp_vs_plano.php" class="btn btn-primary mr-2">LPP VS PLANO</a>
       <a href="../perHargaPagi/perHargaPagi.php" class="btn btn-primary mr-2">Per Harga Pagi</a>
       <a href="../hj/index.php" class="btn btn-primary">Upload HJ</a>
     </div>
