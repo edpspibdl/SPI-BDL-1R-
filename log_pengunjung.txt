@@ -10244,3 +10244,9 @@
 [2025-09-22 06:52:34] IP: 192.168.170.24 | Page: /edpweb/cekProdukBaru/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
 [2025-09-22 06:52:42] IP: 192.168.170.24 | Page: /edpweb/laporanLaporan/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
 [2025-09-22 06:53:12] IP: 192.168.170.24 | Page: /edpweb/cekProdukBaru/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-22 08:26:56] IP: 192.168.170.24 | Page: /edpweb/ranking_Pick/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-22 08:27:03] IP: 192.168.170.24 | Page: /edpweb/ranking_Pick/report.php?tanggalAwal=2025-09-22 | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-22 08:27:34] IP: 192.168.170.24 | Page: /edpweb/laporanLaporan/ | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-22 08:27:36] IP: 192.168.170.24 | Page: /edpweb/Margin/marminAll.php | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-22 08:27:38] IP: 192.168.170.24 | Page: /edpweb/Margin/marginMinus.php | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+[2025-09-22 08:27:41] IP: 192.168.170.24 | Page: /edpweb/landingPage/index.php | Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
