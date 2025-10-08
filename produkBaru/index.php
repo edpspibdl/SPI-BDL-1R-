@@ -24,7 +24,7 @@ $input_value = isset($_POST['spd_days']) ? (int) $_POST['spd_days'] : '';
                         <div class="form-group">
                             <label for="spd_days">Range (Hari)</label>
                             <input type="number" name="spd_days" id="spd_days"
-                                class="form-control" min="1" max="30"
+                                class="form-control" min="1" max="90"
                                 value="<?php echo htmlspecialchars($input_value); ?>"
                                 placeholder="Masukkan hari">
                         </div>

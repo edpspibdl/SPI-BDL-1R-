@@ -1,142 +1,142 @@
-<?php
-require_once '../layout/_top.php';
-require_once '../helper/connection.php';
+    <?php
+    require_once '../layout/_top.php';
+    require_once '../helper/connection.php';
 
-$kodePLU = isset($_GET['kodePLU']) && $_GET['kodePLU'] !== "" ? str_pad($_GET['kodePLU'], 7, '0', STR_PAD_LEFT) : '';
-$data = [];
-$barcodes = [];
+    $kodePLU = isset($_GET['kodePLU']) && $_GET['kodePLU'] !== "" ? str_pad($_GET['kodePLU'], 7, '0', STR_PAD_LEFT) : '';
+    $data = [];
+    $barcodes = [];
 
-if ($kodePLU !== '') {
-    try {
-        // Query 1: Informasi produk utama
-        $stmt = $conn->prepare("SELECT DISTINCT ON (prd_prdcd)
-            prd_prdcd,
-            prd_kodetag,
-            prd_deskripsipanjang,
-            prd_kategoritoko,
-            prd_kodecabang,
-            prd_flaggudang,
-            prd_create_dt,
-            prd_kodedivisi || '   ' || COALESCE(div_namadivisi, '') || ' - ' || 
-            COALESCE(prd_kodekategoribarang, '') || '  ' || COALESCE(kat_namakategori, '') || ' - ' ||
-            COALESCE(prd_kodedepartement, '') || '  ' || COALESCE(dep_namadepartement, '') AS div_dept_kat
-        FROM tbmaster_prodmast
-        LEFT JOIN tbmaster_divisi ON prd_kodedivisi = div_kodedivisi
-        LEFT JOIN tbmaster_departement ON prd_kodedepartement = dep_kodedepartement
-        LEFT JOIN tbmaster_kategori ON prd_kodekategoribarang = kat_kodekategori
-        WHERE prd_prdcd = :kodePLU");
-        $stmt->bindParam(':kodePLU', $kodePLU, PDO::PARAM_STR);
-        $stmt->execute();
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($kodePLU !== '') {
+        try {
+            // Query 1: Informasi produk utama
+            $stmt = $conn->prepare("SELECT DISTINCT ON (prd_prdcd)
+                prd_prdcd,
+                prd_kodetag,
+                prd_deskripsipanjang,
+                prd_kategoritoko,
+                prd_kodecabang,
+                prd_flaggudang,
+                prd_create_dt,
+                prd_kodedivisi || '   ' || COALESCE(div_namadivisi, '') || ' - ' || 
+                COALESCE(prd_kodekategoribarang, '') || '  ' || COALESCE(kat_namakategori, '') || ' - ' ||
+                COALESCE(prd_kodedepartement, '') || '  ' || COALESCE(dep_namadepartement, '') AS div_dept_kat
+            FROM tbmaster_prodmast
+            LEFT JOIN tbmaster_divisi ON prd_kodedivisi = div_kodedivisi
+            LEFT JOIN tbmaster_departement ON prd_kodedepartement = dep_kodedepartement
+            LEFT JOIN tbmaster_kategori ON prd_kodekategoribarang = kat_kodekategori
+            WHERE prd_prdcd = :kodePLU");
+            $stmt->bindParam(':kodePLU', $kodePLU, PDO::PARAM_STR);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Query 2: Barcode and Promo Price Data
-        $stmt2 = $conn->prepare("SELECT 
-    pm.PRD_KODEDIVISI,
-    pm.PRD_KODEDEPARTEMENT,
-    pm.PRD_PRDCD,
-    pm.PRD_DESKRIPSIPANJANG,
-    pm.PRD_UNIT,
-    pm.PRD_FRAC,
-    pm.PRD_HRGJUAL AS PRD_HRGJUAL,  -- harga jual pakai promo jika ada
-    md.PRMD_HRGJUAL AS MD_HRGJUAL,  -- harga jual pakai promo jika ada
-    pm.PRD_KODETAG,
-    pc.PRC_KODETAG,
-    pm.PRD_FLAG_AKTIVASI,
-    pm.PRD_AVGCOST,
-    pm.PRD_LASTCOST,
-    pm.PRD_MINJUAL,
-    md.PRMD_HRGJUAL,
-    md.PRMD_TGLAWAL,
-    md.PRMD_TGLAKHIR,
-    bc.BRC_BARCODE,
+            // Query 2: Barcode and Promo Price Data
+            $stmt2 = $conn->prepare("SELECT 
+        pm.PRD_KODEDIVISI,
+        pm.PRD_KODEDEPARTEMENT,
+        pm.PRD_PRDCD,
+        pm.PRD_DESKRIPSIPANJANG,
+        pm.PRD_UNIT,
+        pm.PRD_FRAC,
+        pm.PRD_HRGJUAL AS PRD_HRGJUAL,  -- harga jual pakai promo jika ada
+        md.PRMD_HRGJUAL AS MD_HRGJUAL,  -- harga jual pakai promo jika ada
+        pm.PRD_KODETAG,
+        pc.PRC_KODETAG,
+        pm.PRD_FLAG_AKTIVASI,
+        pm.PRD_AVGCOST,
+        pm.PRD_LASTCOST,
+        pm.PRD_MINJUAL,
+        md.PRMD_HRGJUAL,
+        md.PRMD_TGLAWAL,
+        md.PRMD_TGLAKHIR,
+        bc.BRC_BARCODE,
 
-    -- Hitung margin berdasarkan flag BKP pakai harga promo jika ada
-    CASE 
-        WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' 
-            THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - (pm.PRD_AVGCOST * 1.11)) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) * 100)
-        WHEN pm.PRD_FLAGBKP1 IS NULL AND pm.PRD_FLAGBKP2 IN ('N','C') 
-            THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) * 100)
-    END AS MARGIN,
-
-    ROUND(
-        CASE         
+        -- Hitung margin berdasarkan flag BKP pakai harga promo jika ada
+        CASE 
             WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' 
-                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST * 1.11) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100   
-            WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 <> 'Y' 
-                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100    
-            WHEN pm.PRD_FLAGBKP1 = 'N' 
-                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100    
-        END, 2
-    ) AS MARGINACOST, 
+                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - (pm.PRD_AVGCOST * 1.11)) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) * 100)
+            WHEN pm.PRD_FLAGBKP1 IS NULL AND pm.PRD_FLAGBKP2 IN ('N','C') 
+                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) * 100)
+        END AS MARGIN,
 
-    ROUND(
-        CASE         
-            WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' 
-                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_LASTCOST * 1.11) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100  
-            WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 <> 'Y' 
-                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_LASTCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100  
-            WHEN pm.PRD_FLAGBKP1 = 'N' 
-                THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_LASTCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100        
-        END, 2
-    ) AS MARGINLCOST,
+        ROUND(
+            CASE         
+                WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' 
+                    THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST * 1.11) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100   
+                WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 <> 'Y' 
+                    THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100    
+                WHEN pm.PRD_FLAGBKP1 = 'N' 
+                    THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_AVGCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100    
+            END, 2
+        ) AS MARGINACOST, 
 
-    CASE 
-        WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' THEN 1.11
-        WHEN pm.PRD_FLAGBKP1 = 'N' AND pm.PRD_FLAGBKP2 IN ('N','C') THEN 1
-    END AS KALI,
+        ROUND(
+            CASE         
+                WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' 
+                    THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_LASTCOST * 1.11) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100  
+                WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 <> 'Y' 
+                    THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_LASTCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100  
+                WHEN pm.PRD_FLAGBKP1 = 'N' 
+                    THEN ((COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) - pm.PRD_LASTCOST) / COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)) * 100        
+            END, 2
+        ) AS MARGINLCOST,
 
-    -- ST_HARGA_NETTO dari harga jual promo jika ada
-    CASE 
-        WHEN COALESCE(pm.prd_flagbkp1,'T') = 'Y' AND COALESCE(pm.prd_flagbkp2,'T') = 'Y' 
-            THEN COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) / 11.1 * 10
-        ELSE COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)
-    END AS ST_HARGA_NETTO,
+        CASE 
+            WHEN pm.PRD_FLAGBKP1 = 'Y' AND pm.PRD_FLAGBKP2 = 'Y' THEN 1.11
+            WHEN pm.PRD_FLAGBKP1 = 'N' AND pm.PRD_FLAGBKP2 IN ('N','C') THEN 1
+        END AS KALI,
 
-    -- ST_MD_NETTO dari md.PRMD_HRGJUAL jika ada
-    CASE 
-        WHEN COALESCE(pm.prd_flagbkp1,'T') = 'Y' AND COALESCE(pm.prd_flagbkp2,'T') = 'Y' 
-            THEN md.PRMD_HRGJUAL / 11.1 * 10
-        ELSE md.PRMD_HRGJUAL
-    END AS ST_MD_NETTO,
+        -- ST_HARGA_NETTO dari harga jual promo jika ada
+        CASE 
+            WHEN COALESCE(pm.prd_flagbkp1,'T') = 'Y' AND COALESCE(pm.prd_flagbkp2,'T') = 'Y' 
+                THEN COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL) / 11.1 * 10
+            ELSE COALESCE(md.PRMD_HRGJUAL, pm.PRD_HRGJUAL)
+        END AS ST_HARGA_NETTO,
 
-    CASE 
-        WHEN RIGHT(pm.PRD_PRDCD, 1) = '0' THEN '0'
-        WHEN RIGHT(pm.PRD_PRDCD, 1) = '1' THEN '1'
-        WHEN RIGHT(pm.PRD_PRDCD, 1) = '2' THEN '2'
-        WHEN RIGHT(pm.PRD_PRDCD, 1) = '3' THEN '3'
-        ELSE NULL
-    END AS sj,
+        -- ST_MD_NETTO dari md.PRMD_HRGJUAL jika ada
+        CASE 
+            WHEN COALESCE(pm.prd_flagbkp1,'T') = 'Y' AND COALESCE(pm.prd_flagbkp2,'T') = 'Y' 
+                THEN md.PRMD_HRGJUAL / 11.1 * 10
+            ELSE md.PRMD_HRGJUAL
+        END AS ST_MD_NETTO,
 
-    pm.PRD_FLAGBKP1,
-    pm.PRD_FLAGBKP2
+        CASE 
+            WHEN RIGHT(pm.PRD_PRDCD, 1) = '0' THEN '0'
+            WHEN RIGHT(pm.PRD_PRDCD, 1) = '1' THEN '1'
+            WHEN RIGHT(pm.PRD_PRDCD, 1) = '2' THEN '2'
+            WHEN RIGHT(pm.PRD_PRDCD, 1) = '3' THEN '3'
+            ELSE NULL
+        END AS sj,
 
-FROM tbmaster_prodmast pm
+        pm.PRD_FLAGBKP1,
+        pm.PRD_FLAGBKP2
 
-LEFT JOIN (
-    SELECT prmd_prdcd, prmd_hrgjual, prmd_tglawal, prmd_tglakhir
-    FROM tbtr_promomd
-    WHERE CURRENT_DATE BETWEEN prmd_tglawal AND prmd_tglakhir
-) md ON pm.prd_prdcd = md.prmd_prdcd
+    FROM tbmaster_prodmast pm
 
-LEFT JOIN tbmaster_prodcrm pc ON pm.prd_prdcd = pc.prc_pluigr
+    LEFT JOIN (
+        SELECT prmd_prdcd, prmd_hrgjual, prmd_tglawal, prmd_tglakhir
+        FROM tbtr_promomd
+        WHERE CURRENT_DATE BETWEEN prmd_tglawal AND prmd_tglakhir
+    ) md ON pm.prd_prdcd = md.prmd_prdcd
 
-LEFT JOIN (
-    SELECT DISTINCT ON (brc_prdcd) brc_prdcd, brc_barcode
-    FROM tbmaster_barcode
-    ORDER BY brc_prdcd, brc_barcode
-) bc ON pm.prd_prdcd = bc.brc_prdcd
+    LEFT JOIN tbmaster_prodcrm pc ON pm.prd_prdcd = pc.prc_pluigr
 
-WHERE pm.PRD_PRDCD LIKE :kodePLU
+    LEFT JOIN (
+        SELECT DISTINCT ON (brc_prdcd) brc_prdcd, brc_barcode
+        FROM tbmaster_barcode
+        ORDER BY brc_prdcd, brc_barcode
+    ) bc ON pm.prd_prdcd = bc.brc_prdcd
 
-ORDER BY pm.PRD_MINJUAL, pm.PRD_AVGCOST DESC");
+    WHERE pm.PRD_PRDCD LIKE :kodePLU
 
-        // Update kodePLU for LIKE clause
-        $kodePLU = substr($kodePLU, 0, 6) . '%';
-        $stmt2->bindParam(':kodePLU', $kodePLU, PDO::PARAM_STR);
-        $stmt2->execute();
+    ORDER BY pm.PRD_MINJUAL, pm.PRD_AVGCOST DESC");
 
-        // Fetch all barcode and product data
-        $barcodes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+            // Update kodePLU for LIKE clause
+            $kodePLU = substr($kodePLU, 0, 6) . '%';
+            $stmt2->bindParam(':kodePLU', $kodePLU, PDO::PARAM_STR);
+            $stmt2->execute();
+
+            // Fetch all barcode and product data
+            $barcodes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
 
         // QUERY 3 :: TREN SALED

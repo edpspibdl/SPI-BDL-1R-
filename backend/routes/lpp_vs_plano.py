@@ -5,7 +5,6 @@ from db import get_conn   # ambil koneksi dari db.py
 lpp_bp = Blueprint("lpp_bp", __name__)
 
 @lpp_bp.route("/lpp-vs-plano", methods=["GET"])
-@lpp_bp.route("/lpp-vs-plano/", methods=["GET"])   # biar support pakai / atau tanpa /
 def get_lpp():
     conn = get_conn()
     cur = conn.cursor()
