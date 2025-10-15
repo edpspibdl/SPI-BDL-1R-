@@ -117,7 +117,7 @@ try {
 
     <div class="row mt-4">
       <!-- Kolom Grafik -->
-      <div class="col-lg-8 col-md-8 col-sm-12">
+      <div class="col-lg-12 col-md-12 col-sm-12">
         <div class="card">
           <div class="card-header">
             <h4>Sales & Margin Bulanan (12 Bulan Terakhir)</h4>
@@ -128,50 +128,7 @@ try {
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Kolom Alert / Notifikasi
-<div class="col-lg-4 col-md-4 col-sm-12">
-  <div class="card shadow">
-    <div class="card-header text-white">
-      <h4><i class="fas fa-exclamation-circle"></i> Alert / Notifikasi</h4>
-    </div>
-    <div class="card-body">
-      <ul class="list-group list-group-flush">
-
-        Margin Minus
-        <a href="../Margin/marginMinus.php" 
-           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-          <span class="text-danger font-weight-bold">
-            <i class="fas fa-bell fa-shake"></i> Margin Minus
-          </span>
-          <span class="badge badge-danger rounded-pill px-3 py-2">
-            <?php echo $marmin_count; ?>
-          </span>
-        </a>
-
-        <!-- Margin Minus -->
-        <!-- <a href="../barkos/report.php" 
-           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-          <span class="text-danger font-weight-bold">
-            <i class="fas fa-bell fa-shake"></i> Barkos
-          </span>
-          <span class="badge badge-danger rounded-pill px-3 py-2">
-            <?php echo $count_barkos; ?>
-          </span>
-        </a> -->
-
-        <!-- Penjualan Turun -->
-        <!-- <li class="list-group-item d-flex justify-content-between align-items-center">
-          <span class="text-info font-weight-bold">
-            <i class="fas fa-chart-line"></i> Penjualan Turun
-          </span>
-          <span class="badge badge-info rounded-pill px-3 py-2">5</span>
-        </li>
-      </ul>
-    </div>
-  </div>
-</div> --> 
+      </div> 
     </div>
   </div>
 </section>

@@ -1,0 +1,68 @@
+
+    .promo-section {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 700;
+        /* Ubah dari bold ke normal */
+        font-size: 14px;
+        background-color: #f9f9f9;
+    }
+
+
+    .promo-section .container {
+        width: 100%;
+        margin: auto;
+    }
+
+    .promo-section input,
+    .promo-section select {
+        width: 100%;
+        padding: 1px;
+        box-sizing: border-box;
+    }
+
+    .promo-section table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+    }
+
+    .promo-section table,
+    .promo-section th,
+    .promo-section td {
+        border: 1px solid #ccc;
+    }
+
+    .promo-section th {
+        background-color: #0074D9;
+        color: white;
+    }
+
+    .promo-section td,
+    .promo-section th {
+        padding: 5px;
+        text-align: center;
+    }
+
+    .promo-section .header-table td {
+        text-align: left;
+        background-color: #f1f1f1;
+    }
+
+    .promo-section .section-box {
+        margin-top: 10px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        background: #fff;
+    }
+
+    .promo-section .modal-backdrop {
+        z-index: 1040 !important;
+    }
+
+    .promo-section .modal {
+        z-index: 1050 !important;
+    }
+
+    .promo-section .modal-dialog {
+        z-index: 1060 !important;
+    }

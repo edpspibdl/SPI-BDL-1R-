@@ -3,13 +3,16 @@ session_start(); // <-- harus duluan
 require_once 'helper/connection.php';
 
 if (isset($_POST['submit'])) {
-    $userid = $_POST['userid'] ?? '';
+    // Ambil input dan pastikan menjadi uppercase untuk USERID
+    $userid = strtoupper($_POST['userid'] ?? ''); 
     $userpassword = $_POST['userpassword'] ?? '';
     $_SESSION['db_target'] = $_POST['db_target'] ?? 'prod';
 
     if (empty($userid) || empty($userpassword)) {
         $error_message = "Username dan password harus diisi.";
     } else {
+        // PERHATIAN: Userpassword seharusnya di-hash (misal: menggunakan password_hash)
+        // Sebelum disimpan ke database dan diverifikasi dengan password_verify.
         $sql = "SELECT * FROM tbmaster_user WHERE userid = :userid AND userpassword = :userpassword LIMIT 1";
 
         try {
@@ -21,7 +24,9 @@ if (isset($_POST['submit'])) {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row) {
                 $_SESSION['login'] = $row;
-                $success_message = "Login Berhasil!";
+                // Redirect langsung ke index.php jika login berhasil
+                header("Location: index.php");
+                exit();
             } else {
                 $error_message = "Username atau password salah.";
             }
@@ -80,13 +85,15 @@ if (isset($_POST['submit'])) {
 
                                         <div class="form-group">
                                             <label for="userid">Username</label>
-                                            <input id="userid" type="text" class="form-control" name="userid" required autofocus>
+                                            <input id="userid" type="text" class="form-control" name="userid" required autofocus
+                                                   style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
                                             <div class="invalid-feedback">Mohon isi username</div>
                                         </div>
 
                                         <div class="form-group">
                                             <label for="userpassword">Password</label>
-                                            <input id="userpassword" type="password" class="form-control" name="userpassword" required>
+                                            <input id="userpassword" type="password" class="form-control" name="userpassword" required
+                                                   style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
                                             <div class="invalid-feedback">Mohon isi kata sandi</div>
                                         </div>
 
@@ -114,17 +121,23 @@ if (isset($_POST['submit'])) {
             title: 'Login Gagal',
             text: '<?php echo $error_message; ?>'
         });
-        <?php elseif (isset($success_message)): ?>
-        Swal.fire({
-            icon: 'success',
-            title: '<?php echo $success_message; ?>',
-            text: 'Redirecting...',
-            timer: 2000,
-            willClose: () => {
-                window.location.href = 'index.php';
+        <?php endif; ?>
+
+        // PERBAIKAN 2: Mengatasi tombol Enter agar pindah dari Username ke Password
+        document.addEventListener('DOMContentLoaded', function() {
+            const userIdInput = document.getElementById('userid');
+            const userPasswordInput = document.getElementById('userpassword');
+            
+            if (userIdInput && userPasswordInput) {
+                userIdInput.addEventListener('keydown', function(event) {
+                    // Cek apakah tombol yang ditekan adalah Enter (keyCode 13 atau key 'Enter')
+                    if (event.keyCode === 13 || event.key === 'Enter') {
+                        event.preventDefault(); // Mencegah form terkirim
+                        userPasswordInput.focus(); // Pindahkan fokus ke input password
+                    }
+                });
             }
         });
-        <?php endif; ?>
     </script>
 </body>
 </html>

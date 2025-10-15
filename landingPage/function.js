@@ -99,79 +99,112 @@ function updateMonthlySalesChart() {
 
     const ctx = monthlySalesChartElement.getContext('2d');
 
-    fetch('sales_bulanan.php') // Perbarui path
+    fetch('sales_bulanan.php') // Path ke file PHP
         .then(response => {
             if (!response.ok) {
-                return response.text().then(text => { throw new Error(`HTTP error! status: ${response.status}. Response text: ${text}`); });
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}. Response text: ${text}`);
+                });
             }
             return response.json();
         })
         .then(data => {
             if (data.success && data.sales) {
+                // Pastikan data berupa angka
                 const labels = data.sales.map(item => item.month);
-                const netSalesData = data.sales.map(item => item.total_sales_numeric);
-                const grossSalesData = data.sales.map(item => item.total_gross_numeric);
-                const marginData = data.sales.map(item => item.total_margin_numeric);
+                const netSalesData = data.sales.map(item => Number(item.total_sales_numeric));
+                const grossSalesData = data.sales.map(item => Number(item.total_gross_numeric));
+                const marginData = data.sales.map(item => Number(item.total_margin_numeric));
 
-                if (monthlySalesChartInstance) {
-                    monthlySalesChartInstance.destroy();
+                if (window.monthlySalesChartInstance) {
+                    window.monthlySalesChartInstance.destroy();
                 }
 
-                monthlySalesChartInstance = new Chart(ctx, {
+                // Membuat grafik baru
+                window.monthlySalesChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: labels,
                         datasets: [
-                            { label: 'Sales Nett', data: netSalesData, borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', borderWidth: 2, fill: false, tension: 0.4 },
-                            { label: 'Sales Gross', data: grossSalesData, borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', borderWidth: 2, fill: false, tension: 0.4 },
-                            { label: 'Margin', data: marginData, borderColor: 'rgba(153, 102, 255, 1)', backgroundColor: 'rgba(153, 102, 255, 0.2)', borderWidth: 2, fill: false, tension: 0.4 }
+                            {
+                                label: 'Sales Nett',
+                                data: netSalesData,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Sales Gross',
+                                data: grossSalesData,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Margin',
+                                data: marginData,
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            }
                         ]
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: { display: true, text: 'Jumlah (IDR)' },
                                 ticks: {
+                                    // Format sumbu Y ke Rupiah
                                     callback: function(value) {
-                                        return 'Rp. ' + value.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
                                     }
                                 }
-                            },
-                            x: { title: { display: true, text: 'Bulan' } }
+                            }
                         },
                         plugins: {
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
                                         let label = context.dataset.label || '';
-                                        if (label) { label += ': '; }
-                                        if (context.parsed.y !== null) {
-                                            label += 'Rp. ' + context.parsed.y.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                                        }
-                                        return label;
+                                        let value = context.raw || context.parsed.y;
+                                        return `${label}: Rp ${new Intl.NumberFormat('id-ID').format(value)}`;
                                     }
                                 }
                             },
-                            // Pastikan plugin datalabels sudah di-import jika Anda menggunakannya
-                            // datalabels: { ... konfigurasi datalabels Anda ... }
+                            legend: {
+                                position: 'top'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Grafik Sales & Margin Bulanan'
+                            }
                         }
                     }
                 });
             } else {
                 console.error('Gagal mengambil data sales bulanan:', data.message || 'Data tidak ditemukan atau error tidak diketahui');
                 const chartParent = monthlySalesChartElement.parentElement;
-                if (chartParent) { chartParent.innerHTML = '<p class="text-center text-danger">Gagal memuat grafik sales & margin bulanan.</p>'; }
+                if (chartParent) {
+                    chartParent.innerHTML = '<p class="text-center text-danger">Gagal memuat grafik sales & margin bulanan.</p>';
+                }
             }
         })
         .catch(error => {
             console.error('ERROR: Saat mengambil data sales bulanan:', error);
             const chartParent = monthlySalesChartElement.parentElement;
-            if (chartParent) { chartParent.innerHTML = '<p class="text-center text-danger">Error koneksi saat memuat grafik.</p>'; }
+            if (chartParent) {
+                chartParent.innerHTML = '<p class="text-center text-danger">Error koneksi saat memuat grafik.</p>';
+            }
         });
 }
+
 
 // Inisialisasi saat halaman selesai dimuat
 document.addEventListener('DOMContentLoaded', () => {
