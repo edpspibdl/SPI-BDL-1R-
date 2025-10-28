@@ -1,9 +1,21 @@
 <?php
-require_once '_config.php';
+require_once '../helper/connection.php'; // pakai koneksi dari sini
 
-
-class OBI extends DBConfig
+class OBI
 {
+    private $conn;
+
+    public function __construct()
+{
+    /** @var PDO $conn */
+    global $conn;
+    if (!$conn) {
+        die("Database connection not initialized.");
+    }
+    $this->conn = $conn;
+}
+
+    
   public function headerTgl($id)
 {
     $query  = "SELECT

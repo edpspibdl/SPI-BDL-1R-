@@ -29,21 +29,26 @@ require_once '../helper/connection.php'; // koneksi PDO ada di sini
 // Logika PHP minimal
 $db_status = $_SESSION['db_target'] ?? 'prod';
 $server_status = ($db_status === 'prod') ? 'PRODUCTION' : 'SIMULASI';
-
-// =====================
-// Hitung jumlah Margin Minus (pakai PDO)
-// =====================
-$marmin_count = 0;
-try {
-  $stmt = $conn->query("SELECT COUNT(*) as cnt FROM marmin"); // sesuaikan nama tabel/view
-  $row = $stmt->fetch(PDO::FETCH_ASSOC);
-  $marmin_count = $row['cnt'] ?? 0;
-} catch (PDOException $e) {
-  $marmin_count = 0; // fallback kalau query error
-}
 ?>
 
 <link rel="stylesheet" href="./assets/css/style.css">
+
+<!-- Tambahkan CSS untuk grafik responsif -->
+<style>
+  .chart-container {
+    position: relative;
+    width: 100%;
+    height: 60vh;              /* 60% tinggi viewport, cukup proporsional */
+    max-height: 500px;         /* Batasi tinggi maksimum */
+    padding: 10px;
+  }
+
+  .chart-container canvas {
+    width: 100% !important;    /* Ikuti lebar container */
+    height: 100% !important;   /* Ikuti tinggi container */
+    display: block;
+  }
+</style>
 
 <section class="section">
   <div class="section-header d-flex justify-content-between align-items-center">
@@ -72,9 +77,12 @@ try {
           </div>
         </div>
       </div>
+
       <div class="col-lg-3 col-md-6 col-sm-6 col-12">
         <div class="card card-statistic-1">
-          <div class="card-icon bg-info"> <i class="fas fa-money-bill-wave"></i> </div>
+          <div class="card-icon bg-info">
+            <i class="fas fa-money-bill-wave"></i>
+          </div>
           <div class="card-wrap">
             <div class="card-header">
               <h4>Sales Gross Bulan Ini</h4>
@@ -85,6 +93,7 @@ try {
           </div>
         </div>
       </div>
+
       <div class="col-lg-3 col-md-6 col-sm-6 col-12">
         <div class="card card-statistic-1">
           <div class="card-icon bg-primary">
@@ -100,9 +109,12 @@ try {
           </div>
         </div>
       </div>
+
       <div class="col-lg-3 col-md-6 col-sm-6 col-12">
         <div class="card card-statistic-1">
-          <div class="card-icon bg-info"> <i class="fas fa-users-cog"></i> </div>
+          <div class="card-icon bg-info">
+            <i class="fas fa-users-cog"></i>
+          </div>
           <div class="card-wrap">
             <div class="card-header">
               <h4>Member Belanja Bulan Ini</h4>
@@ -115,8 +127,8 @@ try {
       </div>
     </div>
 
+    <!-- GRAFIK -->
     <div class="row mt-4">
-      <!-- Kolom Grafik -->
       <div class="col-lg-12 col-md-12 col-sm-12">
         <div class="card">
           <div class="card-header">
@@ -134,6 +146,6 @@ try {
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="./function.js"></script>
 
+<script src="./function.js"></script>
 <?php require_once '../layout/_bottom.php'; ?>

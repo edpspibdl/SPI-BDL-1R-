@@ -201,7 +201,7 @@
         $stok = $stmt4->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // QUERY 5 :: STOCK
+        // QUERY 5 :: CASHBACK
 
         $stmt5 = $conn->prepare("SELECT 
     d.cbd_prdcd,  
@@ -708,27 +708,27 @@ ORDER BY h.cbh_tglawal ASC");
         // QUERY 8 :: PKM
 
         $stmt8 = $conn->prepare("SELECT 
-  DSI,
-  PKM_PKMT,
-  PKM_MINORDER,
-  PKM_MINDISPLAY
-FROM TBMASTER_KKPKM
-JOIN (
-  SELECT 
-    ST_PRDCD AS DSI_PLU,
-    ST_SALDOAKHIR,
-    ROUND(
-      CASE
-        WHEN ST_SALES > 0 THEN 
-          ((((ST_SALDOAWAL + ST_SALDOAKHIR) / 2) / ST_SALES) * EXTRACT(DOY FROM CURRENT_DATE))
-        ELSE 0
-      END, 0
-    ) AS DSI
-  FROM TBMASTER_STOCK
-  WHERE ST_LOKASI = '01'
-) AS stock_data
-ON PKM_PRDCD LIKE  :kodePLU
-AND PKM_PRDCD = stock_data.DSI_PLU");
+            DSI,
+            PKM_PKMT,
+            PKM_MINORDER,
+            PKM_MINDISPLAY
+            FROM TBMASTER_KKPKM
+            JOIN (
+            SELECT 
+                ST_PRDCD AS DSI_PLU,
+                ST_SALDOAKHIR,
+                ROUND(
+                CASE
+                    WHEN ST_SALES > 0 THEN 
+                    ((((ST_SALDOAWAL + ST_SALDOAKHIR) / 2) / ST_SALES) * EXTRACT(DOY FROM CURRENT_DATE))
+                    ELSE 0
+                END, 0
+                ) AS DSI
+            FROM TBMASTER_STOCK
+            WHERE ST_LOKASI = '01'
+            ) AS stock_data
+            ON PKM_PRDCD LIKE  :kodePLU
+            AND PKM_PRDCD = stock_data.DSI_PLU");
 
         // Update kodePLU for LIKE clause
         $kodePLU = substr($kodePLU, 0, 6) . '%';

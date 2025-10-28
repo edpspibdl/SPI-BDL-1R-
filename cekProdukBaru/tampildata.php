@@ -96,7 +96,7 @@ foreach ($pluex as $plu0) {
         SELECT DISTINCT
     p.prd_create_dt,
     p.prd_prdcd AS plu,
-    p.prd_deskripsipendek AS deskripsi,
+    p.prd_deskripsipanjang AS deskripsi,
         CASE
         WHEN td.mstd_prdcd IS NULL THEN 'BELUM PENERIMAAN'
         ELSE 'SUDAH PENERIMAAN'

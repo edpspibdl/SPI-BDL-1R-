@@ -33,15 +33,21 @@ require_once '../helper/connection.php';
         </div>
         <div class="card-body">
             <p>Selamat datang di halaman daftar Laporan.</p>
+        <div class="row mb-4">
+        <div class="col-12 text-center">
+        <button id="downloadAllReportsBtn" class="btn btn-info btn-lg btn-fixed-width">
+            <i class="fas fa-file-download"></i> Download All Laporan
+        </button>
 
-            <div class="row mb-4">
-                <div class="col-12 text-center">
-                    <button id="downloadAllReportsBtn" class="btn btn-info btn-lg btn-fixed-width">
-                        <i class="fas fa-file-download"></i> Download Semua Laporan Pagi
-                    </button>
-                </div>
-            </div>
-            <div class="row">
+        <!-- 🔔 Tombol baru untuk trigger notif BTB gagal SD6 -->
+        <button id="notifBtbBtn" class="btn btn-danger btn-lg btn-fixed-width ml-2">
+            <i class="fas fa-exclamation-triangle"></i> Cek BTB Gagal SD6
+        </button>
+        </div>
+        </div>
+
+        </div>
+            <div class="row ml-3 mr-3">
                 <div class="col-md-6">
                     <h6 class="mb-3">Laporan Pagi</h6>
                     <table class="table table-sm table-striped table-bordered" style="border: 2px solid black;">
@@ -143,6 +149,7 @@ require_once '../helper/connection.php';
                             $additionalReports = [
                                 ["Laporan Disc 4 Larist", "info", ["../laporanDisc4/download_disc4.php"]],
                                 ["Laporan BTB RETUR", "secondary", ["../btb&retur(ACC)/download_btb_retur.php"]],
+                                ["Laporan CB Per Hari", "primary", ["../cbPerHari/download_cb_perhari.php"]],
                                 // Tambahkan laporan download lain di sini
                             ];
 
@@ -170,7 +177,6 @@ require_once '../helper/connection.php';
                     </table>
                 </div>
             </div>
-        </div>
         <div class="card-footer text-right">
             <small class="text-muted">Halaman diperbarui pada <?= date('d M Y H:i:s') ?></small>
         </div>
@@ -262,4 +268,52 @@ require_once '../helper/connection.php';
             });
         }
     });
+
+    // Tombol untuk trigger cek BTB gagal SD6
+const notifBtbBtn = document.getElementById('notifBtbBtn');
+if (notifBtbBtn) {
+    notifBtbBtn.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Cek BTB Gagal Kirim SD6',
+            text: 'Apakah Anda yakin ingin menjalankan pengecekan?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Jalankan',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang Memproses...',
+                    text: 'Mohon tunggu, sistem sedang memeriksa data BTB...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+
+                        fetch('http://192.168.170.24:8080/edpweb/job/notif_btb_gagal_sd6.php')
+                            .then(response => response.text())
+                            .then(data => {
+                                Swal.close();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: 'Job Sudah Di Jalankan Dan Report Sudah Dikirim WA.',
+                                    confirmButtonText: 'OK'
+                                });
+                            })
+                            .catch(error => {
+                                Swal.close();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: 'Tidak dapat menjalankan pengecekan: ' + error,
+                                    confirmButtonText: 'OK'
+                                });
+                            });
+                    }
+                });
+            }
+        });
+    });
+}
+
 </script>
