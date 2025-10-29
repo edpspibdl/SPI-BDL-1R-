@@ -1,18 +1,32 @@
 <?php
-session_start(); // <-- harus duluan
-require_once 'helper/connection.php';
+ini_set('session.gc_maxlifetime', 36000); // 10 jam
+session_set_cookie_params(36000);
+session_start();
+
+// HAPUS require_once 'helper/connection.php'; DARI SINI
+// require_once 'helper/connection.php'; // <--- HAPUS BARIS INI
+
+if (isset($_SESSION['login'])) {
+    header("Location: index.php");
+    exit();
+}
 
 if (isset($_POST['submit'])) {
-    // Ambil input dan pastikan menjadi uppercase untuk USERID
-    $userid = strtoupper($_POST['userid'] ?? ''); 
+    $userid = strtoupper($_POST['userid'] ?? '');
     $userpassword = $_POST['userpassword'] ?? '';
+    
+    // TANGKAP DAN SETEL SESI BARU DARI FORM SECEPATNYA
     $_SESSION['db_target'] = $_POST['db_target'] ?? 'prod';
+    $_SESSION['branch_target'] = $_POST['branch_target'] ?? 'spi1r'; // Gunakan nilai default yang valid
+
+    // PENTING: PANGGIL KONEKSI HANYA DI SINI
+    // Koneksi sekarang akan menggunakan nilai $_SESSION yang baru disetel di atas
+    require_once 'helper/connection.php';
 
     if (empty($userid) || empty($userpassword)) {
         $error_message = "Username dan password harus diisi.";
     } else {
-        // PERHATIAN: Userpassword seharusnya di-hash (misal: menggunakan password_hash)
-        // Sebelum disimpan ke database dan diverifikasi dengan password_verify.
+        // ... (Logika autentikasi tetap sama) ...
         $sql = "SELECT * FROM tbmaster_user WHERE userid = :userid AND userpassword = :userpassword LIMIT 1";
 
         try {
@@ -24,7 +38,10 @@ if (isset($_POST['submit'])) {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row) {
                 $_SESSION['login'] = $row;
-                // Redirect langsung ke index.php jika login berhasil
+                // Nilai db_target dan branch_target sudah disetel di atas, tapi bisa disetel lagi untuk memastikan:
+                // $_SESSION['db_target'] = $_POST['db_target']; 
+                // $_SESSION['branch_target'] = $_POST['branch_target']; 
+
                 header("Location: index.php");
                 exit();
             } else {
@@ -75,14 +92,40 @@ if (isset($_POST['submit'])) {
                                 </div>
                                 <div class="card-body">
                                     <form method="POST" action="" class="needs-validation" novalidate="">
+
+                                        <!-- Pilih Database -->
                                         <div class="form-group">
                                             <label for="db_target">Pilih Database</label>
                                             <select id="db_target" name="db_target" class="form-control" required>
                                                 <option value="prod" <?php echo ($_SESSION['db_target'] ?? 'prod') === 'prod' ? 'selected' : ''; ?>>PRODUCTION</option>
-                                                <option value="sim" <?php echo ($_SESSION['db_target'] ?? 'prod') === 'sim' ? 'selected' : ''; ?>>SIMULASI</option>
+                                                <option value="sim" <?php echo ($_SESSION['db_target'] ?? '') === 'sim' ? 'selected' : ''; ?>>SIMULASI</option>
                                             </select>
                                         </div>
 
+                                        <div class="form-group">
+                                        <label for="branch_target">Pilih Cabang</label>
+                                            <select id="branch_target" name="branch_target" class="form-control" required>
+                                                
+                                                <option value="spi1r" 
+                                                    <?php echo ($_SESSION['branch_target'] ?? '') === 'spi1r' ? 'selected' : ''; ?>>
+                                                    SPI METRO
+                                                </option>
+                                                
+                                                <option value="igr2u" 
+                                                    <?php echo ($_SESSION['branch_target'] ?? '') === 'igr2u' ? 'selected' : ''; ?>
+                                                    disabled>
+                                                    SPI PRINGSEWU
+                                                </option>
+                                                
+                                                <option value="igrbdl" 
+                                                    <?php echo ($_SESSION['branch_target'] ?? '') === 'igrbdl' ? 'selected' : ''; ?>
+                                                    disabled>
+                                                    INDOGROSIR BANDAR LAMPUNG
+                                                </option>
+                                                
+                                            </select>
+                                        </div>
+                                        <!-- Username -->
                                         <div class="form-group">
                                             <label for="userid">Username</label>
                                             <input id="userid" type="text" class="form-control" name="userid" required autofocus
@@ -90,6 +133,7 @@ if (isset($_POST['submit'])) {
                                             <div class="invalid-feedback">Mohon isi username</div>
                                         </div>
 
+                                        <!-- Password -->
                                         <div class="form-group">
                                             <label for="userpassword">Password</label>
                                             <input id="userpassword" type="password" class="form-control" name="userpassword" required
@@ -123,17 +167,16 @@ if (isset($_POST['submit'])) {
         });
         <?php endif; ?>
 
-        // PERBAIKAN 2: Mengatasi tombol Enter agar pindah dari Username ke Password
+        // Enter untuk pindah dari Username ke Password
         document.addEventListener('DOMContentLoaded', function() {
             const userIdInput = document.getElementById('userid');
             const userPasswordInput = document.getElementById('userpassword');
             
             if (userIdInput && userPasswordInput) {
                 userIdInput.addEventListener('keydown', function(event) {
-                    // Cek apakah tombol yang ditekan adalah Enter (keyCode 13 atau key 'Enter')
                     if (event.keyCode === 13 || event.key === 'Enter') {
-                        event.preventDefault(); // Mencegah form terkirim
-                        userPasswordInput.focus(); // Pindahkan fokus ke input password
+                        event.preventDefault();
+                        userPasswordInput.focus();
                     }
                 });
             }

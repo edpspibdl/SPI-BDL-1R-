@@ -1,0 +1,67 @@
+  .report-container {
+        margin-top: 30px;
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table thead th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .table td {
+        text-align: left;
+    }
+
+    .table td:first-child,
+    .table th:first-child {
+        text-align: left;
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    /* Set table layout to auto for flexible column width */
+    .table {
+        table-layout: auto;
+        /* This allows columns to adjust based on content */
+    }
+    .report-container {
+        margin-top: 30px;
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table thead th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .table td {
+        text-align: left;
+        white-space: nowrap;
+        /* Mencegah teks dibungkus dalam sel */
+    }
+
+    .table td:first-child,
+    .table th:first-child {
+        text-align: left;
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    /* Apply table-layout: auto for automatic column width adjustment */
+    .table {
+        width: 100%;
+        table-layout: auto;
+        /* Memungkinkan kolom menyesuaikan lebar berdasarkan konten */
+    }

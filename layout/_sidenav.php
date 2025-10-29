@@ -240,6 +240,7 @@
           <!-- <li class="list-group-item"><a href="">Evaluasi Sales</a></li> -->
           <li class="list-group-item"><a href="../salesTigaBulan/">Ev Sales 3 Bulan Inc Larangan</a></li>
           <li class="list-group-item"><a href="../salesPromo/">Ev Sales Di Luar Larangan</a></li>
+          <li class="list-group-item"><a href="../evaluasiSales/">Ev Sales</a></li>
         </ul>
     </tr>
   </table>
