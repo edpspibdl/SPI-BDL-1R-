@@ -1,16 +1,13 @@
 # Aktifkan mod_rewrite
+
 RewriteEngine On
 
-# Blokir semua kecuali yang diizinkan
-Order Deny,Allow
-Deny from all
+# Secara default, Apache mengizinkan semua akses kecuali jika ada aturan Deny
 
-# Izinkan semua IP dalam 192.168.170.xx
-Allow from 192.168.170.0/24
-Allow from 192.168.195.0/24
+# Karena kita ingin semua bisa akses, kita tidak perlu aturan Deny.
 
+# Jika Anda memiliki RewriteRule lain, letakkan di sini.
 
-# Izinkan localhost
-Allow from 127.0.0.1
+# Contoh:
 
-
+# RewriteRule ^produk/([0-9]+)$ product.php?id=$1 [L]
