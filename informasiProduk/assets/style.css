@@ -1,68 +1,89 @@
+/* ====== BASE STYLE PROMO SECTION ====== */
+.promo-section {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    background-color: #f9f9f9;
+}
 
-    .promo-section {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-weight: 700;
-        /* Ubah dari bold ke normal */
-        font-size: 14px;
-        background-color: #f9f9f9;
-    }
+/* ====== LAYOUT & INPUT ====== */
+.promo-section .container {
+    width: 100%;
+    margin: auto;
+}
 
+.promo-section input,
+.promo-section select {
+    width: 100%;
+    padding: 1px;
+    box-sizing: border-box;
+}
 
-    .promo-section .container {
-        width: 100%;
-        margin: auto;
-    }
+/* ====== TABEL UTAMA ====== */
+.promo-section table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+}
 
-    .promo-section input,
-    .promo-section select {
-        width: 100%;
-        padding: 1px;
-        box-sizing: border-box;
-    }
+.promo-section table,
+.promo-section th,
+.promo-section td {
+    border: 1px solid #ccc;
+}
 
-    .promo-section table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: white;
-    }
+/* ====== HEADER TABEL (BIRU MUDA) ====== */
+.promo-section th {
+    background-color: #6bacf1; /* 💙 biru muda lembut */
+    color: #424446; /* teks biru tua agar kontras */
+    font-weight: 700;
+    text-align: center;
+}
 
-    .promo-section table,
-    .promo-section th,
-    .promo-section td {
-        border: 1px solid #ccc;
-    }
+/* ====== KONTEN TABEL ====== */
+.promo-section td,
+.promo-section th {
+    padding: 5px;
+    text-align: center;
+    vertical-align: middle;
+}
 
-    .promo-section th {
-        background-color: #0074D9;
-        color: white;
-    }
+/* ====== HEADER KHUSUS (DESKRIPSI PRODUK, DLL) ====== */
+.promo-section .header-table td {
+    text-align: left;
+    background-color: #f1f1f1;
+}
 
-    .promo-section td,
-    .promo-section th {
-        padding: 5px;
-        text-align: center;
-    }
+/* ====== BOX WRAPPER / CARD ====== */
+.promo-section .section-box {
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+}
 
-    .promo-section .header-table td {
-        text-align: left;
-        background-color: #f1f1f1;
-    }
+/* ====== MODAL FIX ====== */
+.promo-section .modal-backdrop { z-index: 1040 !important; }
+.promo-section .modal { z-index: 1050 !important; }
+.promo-section .modal-dialog { z-index: 1060 !important; }
 
-    .promo-section .section-box {
-        margin-top: 10px;
-        padding: 8px;
-        border: 1px solid #ccc;
-        background: #fff;
-    }
+/* ====== CARD HEADER ====== */
+.card-header {
+    background-color: #e9ecef !important; /* abu muda lembut */
+    border-radius: 0.375rem 0.375rem 0 0;
+    color: #333;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 10px;
+}
 
-    .promo-section .modal-backdrop {
-        z-index: 1040 !important;
-    }
+/* ====== TABEL KECIL ====== */
+.table-sm th, .table-sm td {
+    vertical-align: middle;
+    padding: 4px 6px !important;
+}
 
-    .promo-section .modal {
-        z-index: 1050 !important;
-    }
-
-    .promo-section .modal-dialog {
-        z-index: 1060 !important;
-    }
+/* ====== RESPONSIVE HOVER ====== */
+.promo-section table tbody tr:hover {
+    background-color: #f5faff; /* sedikit highlight saat hover */
+}

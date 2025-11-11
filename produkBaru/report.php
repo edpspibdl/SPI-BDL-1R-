@@ -4,7 +4,7 @@ require_once '../helper/connection.php'; // Pastikan path yang benar untuk konek
 
 // Mengambil input SPD Days dari form yang dikirim menggunakan POST
 // Mengamankan input dengan mengonversi ke integer dan memberikan nilai default
-$input_value = isset($_POST['spd_days']) ? (int)$_POST['spd_days'] : 30;
+$input_value = isset($_POST['spd_days']) ? (int)$_POST['spd_days'] : 90;
 
 // Query yang sudah diperbaiki
 $query = "SELECT M.MSTD_PRDCD,

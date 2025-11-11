@@ -5,9 +5,15 @@ require_once '../helper/connection.php';
 // Assuming $viewDetailStruk is defined in this file or a linked file
 include '../views/view_detail_struk.php';
 
-// --- Ambil Parameter dari URL ---
-$tanggalMulai = $_GET['tanggalMulai'] ?? '';
+
+$tanggalMulai   = $_GET['tanggalMulai'] ?? '';
 $tanggalSelesai = $_GET['tanggalSelesai'] ?? '';
+
+$kodeMember   = $_GET['kodeMember']   ?? 'All';
+$kodePLU      = $_GET['kodePLU']      ?? 'All';
+$kodeSupplier = $_GET['kodeSupplier'] ?? 'All';
+$namaSupplier = $_GET['namaSupplier'] ?? 'All';
+$kodeDivisi   = $_GET['kodeDivisi']   ?? 'All';
 
 // --- Format Tanggal untuk SQL ---
 $tanggalMulaiFormatted = $tanggalMulai ? date('Ymd', strtotime($tanggalMulai)) : '';
@@ -49,7 +55,7 @@ $query = "
     WHERE to_char(dtl_tanggal, 'yyyymmdd') BETWEEN :tanggalMulai AND :tanggalSelesai
 ";
 
-
+include 'filter_query.php';
 // --- Tambahkan GROUP BY dan HAVING ---
 $query .= "
     GROUP BY

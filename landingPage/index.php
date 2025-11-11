@@ -53,7 +53,27 @@ $server_status = ($db_status === 'prod') ? 'PRODUCTION' : 'SIMULASI';
 <section class="section">
   <div class="section-header d-flex justify-content-between align-items-center">
     <h1>Dashboard (Real Time)</h1>
-    <div class="d-flex align-items-center">
+  <div class="d-flex align-items-center">
+  <span class="badge badge-secondary mr-2">
+    Cabang: 
+    <?php
+      // Tampilkan nama cabang berdasarkan branch_target
+      $branch = $_SESSION['branch_target'] ?? '';
+      switch ($branch) {
+        case 'spi1r':
+          echo 'SPI METRO';
+          break;
+        case 'igr2u':
+          echo 'SPI PRINGSEWU';
+          break;
+        case 'igrbdl':
+          echo 'INDOGROSIR BANDAR LAMPUNG';
+          break;
+        default:
+          echo 'Tidak Diketahui';
+      }
+    ?>
+  </span>
       <span class="badge badge-info mr-2">Status Server: <?php echo $server_status; ?></span>
       <span class="badge badge-primary" id="clock"></span>
     </div>

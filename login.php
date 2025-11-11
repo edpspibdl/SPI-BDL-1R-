@@ -111,9 +111,9 @@ if (isset($_POST['submit'])) {
                                                     SPI METRO
                                                 </option>
                                                 
-                                                <option value="igr2u" 
-                                                    <?php echo ($_SESSION['branch_target'] ?? '') === 'igr2u' ? 'selected' : ''; ?>
-                                                    disabled>
+                                                <option value="spi2u" 
+                                                    <?php echo ($_SESSION['branch_target'] ?? '') === 'spi2u' ? 'selected' : ''; ?>
+                                                    >
                                                     SPI PRINGSEWU
                                                 </option>
                                                 

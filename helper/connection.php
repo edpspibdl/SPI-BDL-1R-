@@ -16,35 +16,54 @@ $password = null;
 // --- Logika Konfigurasi Koneksi Berdasarkan Cabang dan Mode ---
 
 if ($branch_target === 'spi1r') {
+    // ======================= CABANG SPI METRO =======================
     if ($db_target === 'prod') {
         // Konfigurasi SPI1R (Produksi)
         $host = '172.31.146.253';
         $dbname = 'spibdl1r';
-        $username = 'edp'; // Ganti dengan Username Prod SPI yang sebenarnya
-        $password = '3dp1grVIEW'; // Ganti dengan Password Prod SPI yang sebenarnya
+        $username = 'edp';
+        $password = '3dp1grVIEW';
     } elseif ($db_target === 'sim') {
         // Konfigurasi SPI1R (Simulasi)
         $host = '172.31.146.167';
         $dbname = 'simspibdl1r';
-        $username = 'simspibdl1r'; // Ganti dengan Username Sim SPI yang sebenarnya
-        $password = 'simspibdl1r'; // Ganti dengan Password Sim SPI yang sebenarnya
+        $username = 'simspibdl1r';
+        $password = 'simspibdl1r';
     }
-    
+
+} elseif ($branch_target === 'spi2u') {
+    // ======================= CABANG SPI PRINGSEWU =======================
+    if ($db_target === 'prod') {
+        // Konfigurasi SPI2U (Produksi)
+        $host = '172.31.147.194';
+        $dbname = 'spibdl2u';
+        $username = 'edp';
+        $password = '3dp1grVIEW';
+    } elseif ($db_target === 'sim') {
+        // Konfigurasi SPI2U (Simulasi)
+        $host = '172.31.147.194';
+        $dbname = 'simspibdl2u';
+        $username = 'simspibdl2u';
+        $password = 'simspibdl2u';
+    }
+
 } elseif ($branch_target === 'igrbdl') {
+    // ======================= CABANG INDOGROSIR BANDAR LAMPUNG =======================
     if ($db_target === 'prod') {
         // Konfigurasi IGRBDL (Produksi)
         $host = '192.168.247.191';
         $dbname = 'igrbdl';
-        $username = 'edp'; // Ganti dengan Username Prod IGR yang sebenarnya
-        $password = '3dp1grVIEW'; // Ganti dengan Password Prod IGR yang sebenarnya
+        $username = 'edp';
+        $password = '3dp1grVIEW';
     } elseif ($db_target === 'sim') {
-        // Konfigurasi IGRBDL (Simulasi - Ganti dengan kredensial Sim IGR yang benar)
-        $host = '192.168.247.191'; 
-        $dbname = 'simigrbdl'; 
-        $username = 'edp_sim_igr'; 
-        $password = 'Password_Sim_IGR'; 
+        // Konfigurasi IGRBDL (Simulasi)
+        $host = '192.168.247.191';
+        $dbname = 'simigrbdl';
+        $username = 'edp_sim_igr';
+        $password = 'Password_Sim_IGR';
     }
 }
+
 
 // --- Koneksi PDO ---
 

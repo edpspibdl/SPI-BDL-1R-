@@ -8,7 +8,7 @@ if (empty($kodeMember)) {
 
 $query = "SELECT TGL_TRANS, KODE_STATION, TRANS_NO, CREATE_BY, KD_MEMBER, KD_PROMOSI, KELIPATAN, CASHBACK
           FROM m_promosi_h
-          WHERE KD_PROMOSI = :kodeMember OR KD_MEMBER = :kodeMember
+          WHERE KD_PROMOSI = :kodeMember
           ORDER BY TGL_TRANS DESC";
 
 $stmt = $conn->prepare($query);

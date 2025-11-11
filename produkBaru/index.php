@@ -51,7 +51,7 @@ $input_value = isset($_POST['spd_days']) ? (int) $_POST['spd_days'] : '';
     $(document).ready(function() {
         $('#spdForm').submit(function(e) {
             var spdDays = $('#spd_days').val();
-            if (spdDays > 30) {
+            if (spdDays > 90) {
                 e.preventDefault();
                 Swal.fire({
                     icon: 'error',

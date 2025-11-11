@@ -9,10 +9,11 @@ if (isset($_GET['kodeMember']) && $_GET['kodeMember'] != "") {
 }
 ?>
 
-<section class="section">ntent-between align-items-center">
+<section class="section">
+      <div class="section-header d-flex justify-content-between align-items-center">
         <h1 class="text-dark">Cek Data Perolehan Cashback Member</h1>
     </div>
-    <div class="section-header d-flex justify-co
+  
 
     <div class="container-fluid">
         <div class="card shadow-sm border-0">
