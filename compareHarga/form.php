@@ -1,97 +1,40 @@
 <?php
 require_once '../layout/_top.php'; 
-require_once '../helper/connection.php'; // Ini membuat $conn (Koneksi Lokal)
+require_once '../helper/connection.php'; // Sudah memuat semua koneksi + konfigurasi
 
 $kodePLU = '';
 $data = [];
 $error_messages = []; 
 $search_executed = false;
 
-// Ambil variabel sesi yang sudah ada dari connection.php
-// ASUMSI: $branch_target akan berisi 'spi1r', 'spi2u', atau 'igrbdl'
+// Ambil variabel dari session & connection.php
 $db_target = $_SESSION['db_target'] ?? 'prod'; 
-$branch_target = $_SESSION['branch_target'] ?? 'unknown'; 
+$branch_target = $_SESSION['branch_target'] ?? 'unknown';
 
-// -----------------------------------------------------------------
-// 1. DEFINISI SEMUA KONFIGURASI CABANG (KEY DIUBAH KEMBALI KE KODE SINGKAT)
-// -----------------------------------------------------------------
-$all_branch_configs = [
-    'spi1r' => [ // KEY DITETAPKAN SEBAGAI KODE SINGKAT
-        'name' => 'SPI METRO',
-        'prod' => ['host' => '172.31.146.253', 'dbname' => 'spibdl1r', 'user' => 'edp', 'pass' => '3dp1grVIEW'],
-        'sim' => ['host' => '172.31.146.167', 'dbname' => 'simspibdl1r', 'user' => 'simspibdl1r', 'pass' => 'simspibdl1r'],
-    ],
-    'spi2u' => [ // KEY DITETAPKAN SEBAGAI KODE SINGKAT
-        'name' => 'SPI PRINGSEWU',
-        'prod' => ['host' => '172.31.147.194', 'dbname' => 'spibdl2u', 'user' => 'edp', 'pass' => '3dp1grVIEW'],
-        'sim' => ['host' => '172.31.147.194', 'dbname' => 'simspibdl2u', 'user' => 'simspibdl2u', 'pass' => 'simspibdl2u'],
-    ],
-    'igrbdl' => [ // KEY DITETAPKAN SEBAGAI KODE SINGKAT
-        'name' => 'IGR BANDAR LAMPUNG',
-        'prod' => ['host' => '192.168.247.191', 'dbname' => 'igrbdl', 'user' => 'edp', 'pass' => '3dp1grVIEW'],
-        'sim' => ['host' => '192.168.247.191', 'dbname' => 'simigrbdl', 'user' => 'edp_sim_igr', 'pass' => 'Password_Sim_IGR'],
-    ],
-    // Tambahkan cabang lain di sini jika ada
-];
+// Ambil semua konfigurasi dan koneksi dari connection.php
+$all_branch_configs = $ALL_BRANCH_CONFIGS;
+$remote_connections = $remote_connections ?? [];
+$remote_branch_names = $remote_branch_names ?? [];
 
-$remote_connections = []; // Array untuk menampung koneksi objek remote
-$remote_branch_names = []; // Array untuk menyimpan NAMA CABANG (Code => Name)
-$remote_plu_data = []; // Array untuk menampung hasil query remote
-
-// -----------------------------------------------------------------
-// 2. BUAT KONEKSI KE CABANG LAIN (REMOTE)
-// -----------------------------------------------------------------
-foreach ($all_branch_configs as $code => $config) {
-    // Simpan semua nama cabang (termasuk yang lokal) untuk digunakan di header
-    $remote_branch_names[$code] = $config['name'];
-    
-    // Lewati cabang lokal (yang sedang login)
-    if ($code === $branch_target) {
-        continue;
-    }
-
-    $remote_config = $config[$db_target]; // Ambil konfigurasi sesuai mode DB lokal (prod/sim)
-
-    try {
-        $dsn_remote = "pgsql:host={$remote_config['host']};dbname={$remote_config['dbname']}";
-        $conn_remote = new PDO($dsn_remote, $remote_config['user'], $remote_config['pass']);
-        $conn_remote->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
-        $remote_connections[$code] = $conn_remote;
-
-    } catch (PDOException $e) {
-        // Catat error tanpa menghentikan proses
-        $error_messages[$code] = "Gagal koneksi ke {$config['name']} ($code): " . $e->getMessage();
-    }
-}
-// -----------------------------------------------------------------
-
-
-// ---------------------------
 // 🔍 LOGIKA PENCARIAN PRODUK
-// (BLOK INI TIDAK BERUBAH KECUALI ERROR MESSAGE)
-// ---------------------------
 if (!empty($_GET['kodePLU'])) {
     $inputPLU = trim($_GET['kodePLU']);
     $search_executed = true;
 
-    // 1. Format input ke 7 digit dan ambil 6 digit untuk pencarian LIKE
+    // Format input PLU ke 7 digit → ambil 6 digit untuk LIKE
     $kodePLU = str_pad($inputPLU, 7, '0', STR_PAD_LEFT);
     $base_like = substr($kodePLU, 0, 6) . '%';
     
     $data_lokal = [];
     $final_data = [];
 
-    // ... (Query Lokal Kompleks PHP/SQL yang panjang di sini - TIDAK BERUBAH)
-    // Asumsi: Query yang Anda berikan di atas tidak diubah, hanya variabelnya.
-    $query_lokal_kompleks = "
+    // 🔹 QUERY UTAMA (TIDAK DIUBAH)
+    $query_lokal_kompleks = " 
         SELECT 
             subs1.PLU AS prd_prdcd, 
             subs1.DESK AS prd_deskripsipanjang, 
-            -- Ambil hrg_netmm (Harga Net setelah promo), KALO KOSONG (NULL), ambil harga jual biasa (HRGN)
             COALESCE(subq1.hrg_netmm, subs1.HRGN) AS harga_final_lokal 
         FROM (
-            -- Ambil data dasar dari tbmaster_prodmast
             SELECT PRD_PRDCD PLU, PRD_DESKRIPSIPANJANG DESK, PRD_HRGJUAL HRGN
             FROM TBMASTER_PRODMAST 
             WHERE PRD_PRDCD LIKE :base_plu 
@@ -99,132 +42,92 @@ if (!empty($_GET['kodePLU'])) {
         LEFT JOIN (
             select PLUMM, hrg_netmm
             from (
-            select pluN plumm, HRGN,
-                     HRGP,
-                     (CASE WHEN PLUN LIKE '%0' THEN HRG WHEN PLUN LIKE '%3' THEN HRG ELSE ( HRG * QTY) END ) HRGMM,
-                     qty qtymm,
-                     cb cbmm,
-                     (round(((CASE WHEN PLUN LIKE '%0' THEN HRG WHEN PLUN LIKE '%3' THEN HRG  ELSE ( HRG * QTY) END )),0)-COALESCE(cb,0)) hrg_netmm 
-            from ( 
-            select pluN,  HRGN,
-                     HRGP,
-                     hrg,qty, 
-                     sum((jmlcbh*cbh)+(jmlcbd*cbd)) CB 
-            from ( 
-            select distinct pluN, 
-                     MINRPHC,
-                     MINJUALC,
-                     MAXJUALC,
-                     MAXRPHC, 
-                     cbd, 
-                     cbh,
-                     HRGN,
-                     HRGP,
-                     hrg,
-                     qty,
-                     sum(case when pluN like '%0' 
-                     then (case when COALESCE(MINRPHC,0)<>'0' 
-                             then   ( case when (hrg) > MAXRPHC 
-                                 then FLOOR(MAXRPHC/MINRPHC) 
-                                 else FLOOR((hrg)/MINRPHC) 
-                                 end ) 
-                             else 0 
-                             end )
-                     else (case when COALESCE(MINRPHC,0)<>'0' 
-                             then   ( case when (hrg*qty) > MAXRPHC 
-                                 then FLOOR(MAXRPHC/MINRPHC) 
-                                 else FLOOR((hrg*qty)/MINRPHC) 
-                                 end ) 
-                             else 0 
-                             end )
-                     end )jmlcbh, 
-                     sum(case when COALESCE(MINJUALC,0)<>'0' 
-                     then   (CASE WHEN UNIT='RCG' THEN FLOOR((QTY*FRACN)/MINJUALC) ELSE
-                     ( case when qty > MAXJUALC
-                             then FLOOR(MAXJUALC/MINJUALC) 
-                             else FLOOR(qty/MINJUALC) 
-                             end )END )
-                     else 0 
-                     end ) jmlcbd 
-            from ( 
-            SELECT PLUN,
-                     DESK,
-                     FRACN,
-                     UNIT,
-                     (CASE WHEN UNIT LIKE '%RCG%'
-                     THEN ( 1 * MINJUALN )
-                     ELSE ( FRACN*MINJUALN) 
-                     END ) QTY,
-                     HRGN,
-                     HRGP,
-                     (CASE WHEN COALESCE(HRGP,0)='0' THEN HRGN ELSE HRGP END ) HRG,
-                     MINRPHC,
-                     MINJUALC,
-                     MAXJUALC,
-                     MAXRPHC,
-                     CBH,
-                     CBD
-            FROM (
-            SELECT PLUN,
-                     DESK,
-                     FRACN,
-                     UNIT,
-                     MINJUALN,
-                     HRGN,
-                     HRGP
-            FROM ( 
-            SELECT PLUP,HRGP,FLAG FROM 
-            (SELECT DISTINCT PRMD_PRDCD PLUP,
-                     PRMD_HRGJUAL HRGP,
-                     (CASE WHEN ALK_MEMBER='PLATINUM' THEN 'PLATINUM'
-                             WHEN (ALK_MEMBER='REGBIRUPLUS' OR ALK_MEMBER='REGBIRU') THEN 'BIRU'
-                             ELSE 'MERAH' END ) FLAG
-            FROM TBTR_PROMOMD LEFT JOIN TBTR_PROMOMD_ALOKASI ON SUBSTR(PRMD_PRDCD,1,6)||0=ALK_PRDCD
-            WHERE DATE_TRUNC('days', PRMD_TGLAWAL)<=(current_date) AND DATE_TRUNC('days', PRMD_TGLAKHIR)>=(current_date)
-            AND PRMD_PRDCD LIKE :base_plu  ) subq8 WHERE FLAG='MERAH' ) subq7
-            RIGHT JOIN ( 
-            SELECT PRD_PRDCD PLUN,
-                     PRD_DESKRIPSIPANJANG DESK,
-                     PRD_FRAC FRACN,
-                     PRD_UNIT UNIT,
-                     PRD_MINJUAL MINJUALN,
-                     PRD_HRGJUAL HRGN
-            FROM TBMASTER_PRODMAST
-            WHERE PRD_PRDCD LIKE :base_plu  ) subq9 ON PLUN=PLUP ) subq6
-            LEFT JOIN (
-            SELECT PLUC,
-                     MINRPHC,
-                     MINJUALC,
-                     MAXJUALC,
-                     MAXRPHC,
-                     CBH,
-                     CBD 
-            FROM (
-            select cbd_kodepromosi kode, 
-                     cbd_prdcd pluC, 
-            (case when cbh_minrphprodukpromo < cbh_mintotbelanja then cbh_mintotbelanja 
-                     when cbh_minrphprodukpromo >0 then cbh_minrphprodukpromo 
-                     else cbh_mintotbelanja 
-                     end ) minrphC, 
-                     cbd_minstruk minjuALC, 
-                     (case when cbd_maxstruk>'-1' then 999999999 else cbd_maxstruk end) maxjuALC, 
-                     (case when cbh_maxstrkperhari='999999' then 999999999 else cbh_maxstrkperhari end) maxrphC, 
-                     cbh_cashback cbh, 
-                     cbd_cashback cbd 
-            from tbtr_cashback_hdr left join tbtr_cashback_dtl on cbh_kodepromosi=cbd_kodepromosi 
-                                     left join tbtr_cashback_alokasi on cbh_kodepromosi=cba_kodepromosi 
-            where DATE_TRUNC('days', cbh_tglakhir)>=DATE_TRUNC('days', current_date) and DATE_TRUNC('days', cbh_tglawal)<=DATE_TRUNC('days', current_date)  AND CBH_NAMAPROMOSI NOT LIKE 'KLIK%'
-            and ( COALESCE(cba_retailer,'0')='1' or COALESCE(cba_silver,'0')='1' or COALESCE(cba_gold1,'0')='1' or COALESCE(cba_gold2,'0')='1' or COALESCE(cba_gold3,'0')='1' ) 
-            and cbh_namapromosi not like '%UNIQUE%' and cbh_namapromosi not like '%PWP%' and cbh_namapromosi not like '%UNICODE%' 
-            and COALESCE(cbd_recordid,'2') <>'1' 
-            and  COALESCE(cbd_redeempoint,'0')='0' ) subq10 WHERE PLUC LIKE :base_plu ) subq11 ON SUBSTR(PLUN,1,6)||0=PLUC) subq5 
-            group by PLUN, MINRPHC, MINJUALC, MAXJUALC, MAXRPHC, cbd, cbh, HRGN, HRGP, hrg, qty ) subq4 group by pluN, HRGN, HRGP, hrg, qty) subq3 ) subq2
+                select pluN plumm, HRGN, HRGP,
+                    (CASE WHEN PLUN LIKE '%0' THEN HRG WHEN PLUN LIKE '%3' THEN HRG ELSE (HRG * QTY) END) HRGMM,
+                    qty qtymm, cb cbmm,
+                    (round(((CASE WHEN PLUN LIKE '%0' THEN HRG WHEN PLUN LIKE '%3' THEN HRG ELSE (HRG * QTY) END)),0)-COALESCE(cb,0)) hrg_netmm 
+                from ( 
+                    select pluN, HRGN, HRGP, hrg, qty, sum((jmlcbh*cbh)+(jmlcbd*cbd)) CB 
+                    from ( 
+                        select distinct pluN, MINRPHC, MINJUALC, MAXJUALC, MAXRPHC, cbd, cbh, HRGN, HRGP, hrg, qty,
+                            sum(case when pluN like '%0' 
+                                then (case when COALESCE(MINRPHC,0)<>'0' 
+                                    then (case when (hrg) > MAXRPHC then FLOOR(MAXRPHC/MINRPHC) else FLOOR((hrg)/MINRPHC) end) 
+                                    else 0 end)
+                                else (case when COALESCE(MINRPHC,0)<>'0' 
+                                    then (case when (hrg*qty) > MAXRPHC then FLOOR(MAXRPHC/MINRPHC) else FLOOR((hrg*qty)/MINRPHC) end)
+                                    else 0 end)
+                            end ) jmlcbh, 
+                            sum(case when COALESCE(MINJUALC,0)<>'0' 
+                                then (CASE WHEN UNIT='RCG' THEN FLOOR((QTY*FRACN)/MINJUALC) 
+                                    ELSE (case when qty > MAXJUALC then FLOOR(MAXJUALC/MINJUALC) else FLOOR(qty/MINJUALC) end) END)
+                                else 0 end ) jmlcbd 
+                        from ( 
+                            SELECT PLUN, DESK, FRACN, UNIT,
+                                (CASE WHEN UNIT LIKE '%RCG%' THEN (1 * MINJUALN) ELSE (FRACN*MINJUALN) END) QTY,
+                                HRGN, HRGP,
+                                (CASE WHEN COALESCE(HRGP,0)='0' THEN HRGN ELSE HRGP END) HRG,
+                                MINRPHC, MINJUALC, MAXJUALC, MAXRPHC, CBH, CBD
+                            FROM (
+                                SELECT PLUN, DESK, FRACN, UNIT, MINJUALN, HRGN, HRGP
+                                FROM ( 
+                                    SELECT PLUP, HRGP, FLAG FROM 
+                                    (SELECT DISTINCT PRMD_PRDCD PLUP, PRMD_HRGJUAL HRGP,
+                                        (CASE WHEN ALK_MEMBER='PLATINUM' THEN 'PLATINUM'
+                                              WHEN (ALK_MEMBER='REGBIRUPLUS' OR ALK_MEMBER='REGBIRU') THEN 'BIRU'
+                                              ELSE 'MERAH' END) FLAG
+                                    FROM TBTR_PROMOMD 
+                                    LEFT JOIN TBTR_PROMOMD_ALOKASI 
+                                    ON SUBSTR(PRMD_PRDCD,1,6)||0=ALK_PRDCD
+                                    WHERE DATE_TRUNC('days', PRMD_TGLAWAL)<=current_date 
+                                      AND DATE_TRUNC('days', PRMD_TGLAKHIR)>=current_date
+                                      AND PRMD_PRDCD LIKE :base_plu
+                                    ) subq8 WHERE FLAG='MERAH'
+                                ) subq7
+                                RIGHT JOIN ( 
+                                    SELECT PRD_PRDCD PLUN, PRD_DESKRIPSIPANJANG DESK, PRD_FRAC FRACN, PRD_UNIT UNIT, PRD_MINJUAL MINJUALN, PRD_HRGJUAL HRGN
+                                    FROM TBMASTER_PRODMAST
+                                    WHERE PRD_PRDCD LIKE :base_plu
+                                ) subq9 ON PLUN=PLUP
+                            ) subq6
+                            LEFT JOIN (
+                                SELECT PLUC, MINRPHC, MINJUALC, MAXJUALC, MAXRPHC, CBH, CBD 
+                                FROM (
+                                    select cbd_kodepromosi kode, cbd_prdcd pluC,
+                                        (case when cbh_minrphprodukpromo < cbh_mintotbelanja then cbh_mintotbelanja 
+                                              when cbh_minrphprodukpromo >0 then cbh_minrphprodukpromo 
+                                              else cbh_mintotbelanja end) minrphC, 
+                                        cbd_minstruk minjuALC,
+                                        (case when cbd_maxstruk>'-1' then 999999999 else cbd_maxstruk end) maxjuALC,
+                                        (case when cbh_maxstrkperhari='999999' then 999999999 else cbh_maxstrkperhari end) maxrphC,
+                                        cbh_cashback cbh, cbd_cashback cbd
+                                    from tbtr_cashback_hdr 
+                                    left join tbtr_cashback_dtl on cbh_kodepromosi=cbd_kodepromosi 
+                                    left join tbtr_cashback_alokasi on cbh_kodepromosi=cba_kodepromosi 
+                                    where DATE_TRUNC('days', cbh_tglakhir)>=DATE_TRUNC('days', current_date) 
+                                      and DATE_TRUNC('days', cbh_tglawal)<=DATE_TRUNC('days', current_date)
+                                      and CBH_NAMAPROMOSI NOT LIKE 'KLIK%'
+                                      and (COALESCE(cba_retailer,'0')='1' or COALESCE(cba_silver,'0')='1' 
+                                           or COALESCE(cba_gold1,'0')='1' or COALESCE(cba_gold2,'0')='1' or COALESCE(cba_gold3,'0')='1')
+                                      and cbh_namapromosi not like '%UNIQUE%' 
+                                      and cbh_namapromosi not like '%PWP%' 
+                                      and cbh_namapromosi not like '%UNICODE%' 
+                                      and COALESCE(cbd_recordid,'2') <>'1' 
+                                      and COALESCE(cbd_redeempoint,'0')='0'
+                                ) subq10 WHERE PLUC LIKE :base_plu
+                            ) subq11 ON SUBSTR(PLUN,1,6)||0=PLUC
+                        ) subq5 
+                        group by PLUN, MINRPHC, MINJUALC, MAXJUALC, MAXRPHC, cbd, cbh, HRGN, HRGP, hrg, qty 
+                    ) subq4 
+                    group by pluN, HRGN, HRGP, hrg, qty
+                ) subq3
+            ) subq2
             ORDER BY PLUMM
         ) subq1 ON subs1.PLU = subq1.PLUMM
         ORDER BY subs1.PLU
     ";
 
-
+    // 🟩 Query cabang lokal
     try {
         $stmt_lokal = $conn->prepare($query_lokal_kompleks);
         $stmt_lokal->bindValue(':base_plu', $base_like, PDO::PARAM_STR); 
@@ -234,50 +137,37 @@ if (!empty($_GET['kodePLU'])) {
         $error_messages[$branch_target] = "Error query cabang lokal ({$remote_branch_names[$branch_target]}): " . $e->getMessage();
     }
 
-    // -----------------------------------------------------------------
-    // B. QUERY HARGA REMOTE (Query Kompleks)
-    // -----------------------------------------------------------------
-    $query_remote_complex = str_replace(
-        "AS harga_final_lokal", 
-        "AS harga_final_remote", 
-        $query_lokal_kompleks
-    );
+    // 🟨 Query cabang lain (remote)
+    $query_remote_complex = str_replace("AS harga_final_lokal", "AS harga_final_remote", $query_lokal_kompleks);
+    $remote_plu_data = [];
 
     foreach ($remote_connections as $code => $r_conn) {
         try {
             $stmt_remote = $r_conn->prepare($query_remote_complex);
             $stmt_remote->bindValue(':base_plu', $base_like, PDO::PARAM_STR);
             $stmt_remote->execute();
-            
             $remote_results = $stmt_remote->fetchAll(PDO::FETCH_ASSOC);
-
-            // Simpan hasil query remote ke array: [PLU => Harga Final Remote]
             $remote_plu_data[$code] = array_column($remote_results, 'harga_final_remote', 'prd_prdcd');
         } catch (PDOException $e) {
             $error_messages[$code] = "Error query {$remote_branch_names[$code]} ($code): " . $e->getMessage();
         }
     }
 
-    // -----------------------------------------------------------------
-    // C. GABUNGKAN DATA DI PHP
-    // -----------------------------------------------------------------
+    // Gabungkan hasil
     $final_data = [];
     foreach ($data_lokal as $d_lokal) {
         $plu = $d_lokal['prd_prdcd'];
         $row_data = $d_lokal;
-
-        // Loop melalui hasil data dari semua cabang remote
         foreach ($remote_plu_data as $code => $remote_map) {
-            // Key sekarang menggunakan kode singkat (spi2u, igrbdl, dst)
             $row_data["harga_{$code}"] = $remote_map[$plu] ?? null; 
         }
-
         $final_data[] = $row_data;
     }
     
-    $data = $final_data; 
+    $data = $final_data;
 }
 ?>
+
 
 <style>
 /* HILANGKAN SEMUA CSS KUSTOM SEPERTI .card-header-table DAN .card-body-table */
