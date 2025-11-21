@@ -37,7 +37,7 @@ LEFT JOIN (
 ) sub1 ON c.cus_kodemember = sub1.crm_kodemember
 WHERE c.cus_recordid IS NULL
   AND c.cus_flagmemberkhusus = 'Y'
-  AND c.cus_kodeigr = '1R'
+  AND c.cus_kodeigr = (select prs_kodeigr from tbmaster_perusahaan)
   AND c.cus_namamember <> 'NEW'
 ";
 

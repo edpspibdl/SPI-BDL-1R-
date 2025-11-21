@@ -3,47 +3,42 @@
 
 // Memuat header/top layout dan koneksi database
 require_once '../layout/_top.php'; 
-require_once '../helper/connection.php'; // Memuat koneksi dan konfigurasi
-require_once 'query/product_query.php'; // Memuat definisi query SQL
+require_once '../helper/connection.php'; 
+require_once 'query/product_query.php';
 
 $kodePLU = '';
 $data = [];
 $error_messages = []; 
 $search_executed = false;
 
-// Ambil variabel dari session & connection.php
 $db_target = $_SESSION['db_target'] ?? 'prod'; 
 $branch_target = $_SESSION['branch_target'] ?? 'unknown';
 
-// Ambil semua konfigurasi dan koneksi dari connection.php
 $all_branch_configs = $ALL_BRANCH_CONFIGS;
 $remote_connections = $remote_connections ?? [];
 $remote_branch_names = $remote_branch_names ?? [];
 
-// 🔍 LOGIKA PENCARIAN PRODUK UTAMA
-if (!empty($_GET['kodePLU'])) {
-    $inputPLU = trim($_GET['kodePLU']);
+// ======================================================================
+// ★ TAMBAHAN – MODE TAMPILKAN SEMUA
+// ======================================================================
+if (!empty($_GET['show_all'])) {
     $search_executed = true;
+    $base_like = '%'; // ambil semua PLU
 
-    // Format input PLU ke 7 digit → ambil 6 digit untuk LIKE
-    $kodePLU = str_pad($inputPLU, 7, '0', STR_PAD_LEFT);
-    $base_like = substr($kodePLU, 0, 6) . '%';
-    
     $data_lokal = [];
     $final_data = [];
 
-    // --- Eksekusi Query Lokal (Menggunakan QUERY_LOKAL_KOMPLEKS dari product_query.php) ---
+    // --- Query Lokal untuk Semua ---
     try {
         $stmt_lokal = $conn->prepare($QUERY_LOKAL_KOMPLEKS);
-        $stmt_lokal->bindValue(':base_plu', $base_like, PDO::PARAM_STR); 
+        $stmt_lokal->bindValue(':base_plu', $base_like, PDO::PARAM_STR);
         $stmt_lokal->execute();
         $data_lokal = $stmt_lokal->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        $error_messages[$branch_target] = "Error query cabang lokal ({$remote_branch_names[$branch_target]}): " . $e->getMessage();
+        $error_messages[$branch_target] = "Error query lokal: " . $e->getMessage();
     }
 
-    // --- Eksekusi Query Cabang Lain (Remote) ---
-    // Ganti alias kolom untuk remote
+    // --- Query Remote untuk Semua ---
     $query_remote_complex = str_replace("AS harga_final_lokal", "AS harga_final_remote", $QUERY_LOKAL_KOMPLEKS);
     $remote_plu_data = [];
 
@@ -55,29 +50,83 @@ if (!empty($_GET['kodePLU'])) {
             $remote_results = $stmt_remote->fetchAll(PDO::FETCH_ASSOC);
             $remote_plu_data[$code] = array_column($remote_results, 'harga_final_remote', 'prd_prdcd');
         } catch (PDOException $e) {
-            // Hanya simpan error jika koneksi gagal atau query gagal
-            $error_messages[$code] = "Error query {$remote_branch_names[$code]} ($code): " . $e->getMessage();
+            $error_messages[$code] = "Error remote {$remote_branch_names[$code]}: " . $e->getMessage();
         }
     }
 
-    // --- Gabungkan Hasil Lokal dan Remote ---
+    // --- Gabungkan ---
+    foreach ($data_lokal as $d_lokal) {
+        $plu = $d_lokal['prd_prdcd'];
+        $row = $d_lokal;
+        foreach ($remote_plu_data as $code => $map) {
+            $row["harga_{$code}"] = $map[$plu] ?? null;
+        }
+        $final_data[] = $row;
+    }
+
+    $data = $final_data;
+
+    goto END_SEARCH; // hentikan eksekusi ke blok kodePLU
+}
+
+// ======================================================================
+// LOGIKA PENCARIAN NORMAL (BERDASARKAN PLU)
+// ======================================================================
+
+if (!empty($_GET['kodePLU'])) {
+    $inputPLU = trim($_GET['kodePLU']);
+    $search_executed = true;
+
+    $kodePLU = str_pad($inputPLU, 7, '0', STR_PAD_LEFT);
+    $base_like = substr($kodePLU, 0, 6) . '%';
+    
+    $data_lokal = [];
     $final_data = [];
+
+    // Query Lokal
+    try {
+        $stmt_lokal = $conn->prepare($QUERY_LOKAL_KOMPLEKS);
+        $stmt_lokal->bindValue(':base_plu', $base_like, PDO::PARAM_STR);
+        $stmt_lokal->execute();
+        $data_lokal = $stmt_lokal->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $error_messages[$branch_target] = "Error query cabang lokal: " . $e->getMessage();
+    }
+
+    // Query Remote
+    $query_remote_complex = str_replace("AS harga_final_lokal", "AS harga_final_remote", $QUERY_LOKAL_KOMPLEKS);
+    $remote_plu_data = [];
+
+    foreach ($remote_connections as $code => $r_conn) {
+        try {
+            $stmt_remote = $r_conn->prepare($query_remote_complex);
+            $stmt_remote->bindValue(':base_plu', $base_like, PDO::PARAM_STR);
+            $stmt_remote->execute();
+            $remote_results = $stmt_remote->fetchAll(PDO::FETCH_ASSOC);
+            $remote_plu_data[$code] = array_column($remote_results, 'harga_final_remote', 'prd_prdcd');
+        } catch (PDOException $e) {
+            $error_messages[$code] = "Error remote {$remote_branch_names[$code]}: " . $e->getMessage();
+        }
+    }
+
+    // Gabungkan
     foreach ($data_lokal as $d_lokal) {
         $plu = $d_lokal['prd_prdcd'];
         $row_data = $d_lokal;
         foreach ($remote_plu_data as $code => $remote_map) {
-            $row_data["harga_{$code}"] = $remote_map[$plu] ?? null; 
+            $row_data["harga_{$code}"] = $remote_map[$plu] ?? null;
         }
         $final_data[] = $row_data;
     }
     
     $data = $final_data;
 }
+
+// End Search Label
+END_SEARCH:
 ?>
 
 <style>
-/* Pindahkan semua CSS ke file CSS eksternal jika memungkinkan. */
-/* Jika tidak, biarkan di sini sementara, tetapi minimalisir. */
 body { overflow-x: hidden; }
 .produk-row:hover {
     cursor: pointer;
@@ -87,11 +136,7 @@ body { overflow-x: hidden; }
 }
 .table-responsive td { white-space: normal; }
 .dataTables_wrapper { overflow-x: hidden; }
-legend {
-    width: auto;
-    padding: 0 10px;
-    font-size: 1.25rem;
-}
+legend { width: auto; padding: 0 10px; font-size: 1.25rem; }
 </style>
 
 <section class="section">
@@ -107,13 +152,15 @@ legend {
                     <legend class="fw-bold text-primary px-2">
                         Cari Produk
                     </legend>
+
                     <form method="GET" class="d-flex flex-wrap align-items-center gap-3">
+                        
                         <input type="text" name="kodePLU" id="kodePLU" 
                             class="form-control form-control-lg border-primary" 
                             placeholder="Masukkan Kode PLU (misal: 0013500)" 
-                            value="<?= htmlspecialchars($kodePLU) ?>" required 
+                            value="<?= htmlspecialchars($kodePLU) ?>" 
                             style="max-width: 300px;">
-                        
+
                         <button type="submit" class="btn btn-success btn-lg shadow-sm">
                             <i class="fas fa-play-circle me-1"></i> Cari
                         </button>
@@ -122,6 +169,15 @@ legend {
                                 data-toggle="modal" data-target="#produkModal">
                             <i class="fas fa-list-check me-1"></i> Pilih Produk
                         </button>
+
+                        <!-- ================================================================= -->
+                        <!-- ★ TAMBAHAN BUTTON SHOW ALL -->
+                        <!-- ================================================================= -->
+                        <a href="index.php?show_all=1" 
+                           class="btn btn-primary btn-lg shadow-sm">
+                           <i class="fas fa-table me-1"></i> Tampilkan Semua
+                        </a>
+
                     </form>
                 </fieldset>
             </div>
@@ -134,10 +190,7 @@ legend {
                         Hasil Komparasi PLU: <?= htmlspecialchars($kodePLU) ?>
                     </legend>
 
-                    <?php 
-                        // Memuat komponen tabel hasil komparasi
-                        require_once 'components/comparison_table.php'; 
-                    ?>
+                    <?php require_once 'components/comparison_table.php'; ?>
 
                 </fieldset>
             </div>
@@ -146,15 +199,14 @@ legend {
 </section>
 
 <?php 
-// Memuat komponen Modal Pilih Produk
 require_once 'components/product_modal.php'; 
+require_once '../layout/_bottom.php'; 
 ?>
-
-<?php require_once '../layout/_bottom.php'; ?>
 
 <script>
 $(document).ready(function() {
-    // DataTables hasil pencarian
+
+    /* === GRIDVIEW === */
     if ($('#GridView').length) {
         $('#GridView').DataTable({
             language: {
@@ -168,11 +220,20 @@ $(document).ready(function() {
             paging: true,
             searching: true,
             info: true,
-            ordering: false
+            ordering: false,
+
+            /* === Tambahkan Excel Export === */
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    title: 'Export_GridView'
+                }
+            ]
         });
     }
 
-    // DataTables modal produk
+    /* === PRODUK TABLE === */
     $('#produkTable').DataTable({
         language: {
             search: "Cari Produk:",
@@ -182,10 +243,20 @@ $(document).ready(function() {
         },
         pageLength: 5,
         lengthChange: false,
-        responsive: true
+        responsive: true,
+
+        /* === Tambahkan Excel Export juga kalau mau === */
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                title: 'Export_Produk'
+            }
+        ]
     });
 
-    // Klik baris produk → isi input dan submit
+
+    /* === EVENT KLIK PRODUK === */
     $('#produkTable tbody').on('click', '.produk-row', function() {
         var plu = $(this).data('plu');
         $('#kodePLU').val(plu);

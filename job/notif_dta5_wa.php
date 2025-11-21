@@ -185,7 +185,7 @@ if ($data) {
     ];
 
     $url = "https://api.fonnte.com/send";
-    $token = "KKVJZ5ZraZxuJRxW5Hsg"; // Ganti dengan token Fonnte kamu
+    $token = "V63djuqhUQnWYJKFmibu"; // Ganti dengan token Fonnte kamu
 
     foreach ($targets as $target) {
         $curl = curl_init();

@@ -51,7 +51,7 @@ try {
     ];
 
     $url = "https://api.fonnte.com/send";
-    $token = "KKVJZ5ZraZxuJRxW5Hsg";
+    $token = "V63djuqhUQnWYJKFmibu";
 
     $success = [];
     $failed = [];

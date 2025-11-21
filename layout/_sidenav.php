@@ -169,6 +169,15 @@
       <!-- Kelompok 3 (Planogram) -->
       <li><a class="nav-link" href="../plano/"><i class="fas fa-dolly"></i> <span>Planogram SPI BDL</span></a></li>
 
+       <!-- Garis pemisah -->
+      <li>
+        <hr style="border: 1px solid #ddd; margin: 12px 0;">
+      </li>
+
+      <li class="menu-header">Planogram</li>
+      <!-- Kelompok 3 (Planogram) -->
+      <li><a class="nav-link" href="../ProgramHO/"><i class="fab fa-docker"></i> <span>Program HO</span></a></li>
+
     </ul>
     <div style="height:60px"></div>
   </aside>
@@ -189,7 +198,6 @@
           <li class="list-group-item"><a href="../pembatasanItem/">Pembatasan Item</a></li>
           <li class="list-group-item"><a href="../cekProdukBaru/">Cek Produk Baru</a></li>
           <li class="list-group-item"><a href="../compareHargaNew/">Comparasi Harga</a></li>
-          
         </ul>
         <hr>
         <h6 class="menu-heading">Member</h6>

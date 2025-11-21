@@ -5,83 +5,96 @@ require_once '../helper/connection.php'; // Pastikan connection.php berisi konek
 // Menggunakan exception handling pada query
 try {
     $query = "SELECT      
-            PRD_KODEDIVISI AS DIV,        
-            PRD_KODEDEPARTEMENT AS DEP,        
-            PRD_KODEKATEGORIBARANG AS KAT,        
-            CAST(PRD_PRDCD AS NUMERIC) AS PLU,       
-            PRD_DESKRIPSIPANJANG AS DESK,        
-            PRD_FRAC AS FRAC,        
-            PRD_UNIT AS UNIT,        
-            ROUND(PRD_AVGCOST, 2) AS AVGCOST,        
-            ROUND(PRD_LASTCOST, 2) AS LCOST,     
-            LPP,        
-            ROUND(
-                CASE         
-                    WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 = 'Y' THEN ((HRGJUAL - PRD_AVGCOST * 1.11) / HRGJUAL) * 100   
-                    WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 <> 'Y' THEN ((HRGJUAL - PRD_AVGCOST) / HRGJUAL) * 100    
-                    WHEN PRD_FLAGBKP1 = 'N' THEN ((HRGJUAL - PRD_AVGCOST) / HRGJUAL) * 100    
-                END, 2
-            ) AS MARGINACOST,        
-            ROUND(
-                CASE         
-                    WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 = 'Y' THEN ((HRGJUAL - PRD_LASTCOST * 1.11) / HRGJUAL) * 100  
-                    WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 <> 'Y' THEN ((HRGJUAL - PRD_LASTCOST) / HRGJUAL) * 100  
-                    WHEN PRD_FLAGBKP1 = 'N' THEN ((HRGJUAL - PRD_LASTCOST) / HRGJUAL) * 100        
-                END, 2
-            ) AS MARGINLCOST, 
-            COALESCE(QTY_PO_OUT, 0) AS PO_OUT 
-        FROM (
-            SELECT        
-                PRD_KODECABANG,   
-                prd_recordid,			
-                PRD_KATEGORITOKO,     
-                PRD_KODEDIVISI,        
-                PRD_KODEDEPARTEMENT,        
-                PRD_KODEKATEGORIBARANG,        
-                PRD_PRDCD,        
-                PRD_DESKRIPSIPANJANG,        
-                PRD_FRAC,        
-                PRD_UNIT,        
-                CASE        
-                    WHEN PRMD_HRGJUAL IS NULL THEN PRD_HRGJUAL        
-                    ELSE PRMD_HRGJUAL        
-                END AS HRGJUAL,        
-                ROUND(PRD_AVGCOST, 2) AS PRD_AVGCOST,        
-                ROUND(PRD_LASTCOST, 2) AS PRD_LASTCOST,        
-                ST_SALDOAKHIR AS LPP,        
-                PRD_FLAGBKP1,        
-                PRD_FLAGBKP2        
-            FROM tbmaster_prodmast        
-            LEFT JOIN (
-                SELECT * 
-                FROM TBTR_PROMOMD 
-                WHERE DATE_TRUNC('day', PRMD_TGLAKHIR) >= DATE_TRUNC('day', CURRENT_DATE)
-            ) prm ON PRD_PRDCD = PRMD_PRDCD        
-            LEFT JOIN (
-                SELECT * 
-                FROM TBMASTER_STOCK 
-                WHERE ST_LOKASI = '01'
-            ) st ON PRD_PRDCD = ST_PRDCD
-        ) SUB1       
-        LEFT JOIN (
-            SELECT TPOD_PRDCD, SUM(QTY_PO_OUT) AS QTY_PO_OUT 
-            FROM (
-                SELECT 
-                    d.tpod_prdcd,
-                    SUM(d.tpod_qtypo) AS qty_po_out
-                FROM tbtr_po_d d
-                JOIN tbtr_po_h h ON d.tpod_nopo = h.tpoh_nopo
-                WHERE (d.tpod_qtypb = '0' OR d.tpod_qtypb IS NULL)
-                  AND DATE_TRUNC('day', h.tpoh_tglpo + (h.tpoh_jwpb || ' days')::interval) >= DATE_TRUNC('day', CURRENT_DATE)
-                  AND h.tpoh_recordid IS NULL
-                GROUP BY d.tpod_prdcd
-                ORDER BY d.tpod_prdcd
-            ) po_out
-            GROUP BY TPOD_PRDCD
-        ) po_out ON PRD_PRDCD = TPOD_PRDCD 
-        WHERE PRD_PRDCD LIKE '%0' 
-        AND prd_recordid IS NULL
-        ORDER BY 8 DESC";
+    PRD_KODEDIVISI AS DIV,        
+    PRD_KODEDEPARTEMENT AS DEP,        
+    PRD_KODEKATEGORIBARANG AS KAT,        
+    CAST(PRD_PRDCD AS NUMERIC) AS PLU,       
+    PRD_DESKRIPSIPANJANG AS DESK,        
+    PRD_FRAC AS FRAC,        
+    PRD_UNIT AS UNIT,        
+    ROUND(PRD_AVGCOST, 2) AS AVGCOST,        
+    ROUND(PRD_LASTCOST, 2) AS LCOST,   
+    COALESCE(QTY_PO_OUT, 0) AS PO_OUT ,
+    COALESCE(LPP,0) AS LPP,        
+    ROUND(
+        CASE         
+            WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 = 'Y' THEN ((HRGJUAL - PRD_AVGCOST * 1.11) / HRGJUAL) * 100   
+            WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 <> 'Y' THEN ((HRGJUAL - PRD_AVGCOST) / HRGJUAL) * 100    
+            WHEN PRD_FLAGBKP1 = 'N' THEN ((HRGJUAL - PRD_AVGCOST) / HRGJUAL) * 100    
+        END, 2
+    ) AS MARGINACOST,        
+    ROUND(
+        CASE         
+            WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 = 'Y' THEN ((HRGJUAL - PRD_LASTCOST * 1.11) / HRGJUAL) * 100  
+            WHEN PRD_FLAGBKP1 = 'Y' AND PRD_FLAGBKP2 <> 'Y' THEN ((HRGJUAL - PRD_LASTCOST) / HRGJUAL) * 100  
+            WHEN PRD_FLAGBKP1 = 'N' THEN ((HRGJUAL - PRD_LASTCOST) / HRGJUAL) * 100        
+        END, 2
+    ) AS MARGINLCOST, 
+    COALESCE(QTY_PO_OUT, 0) AS PO_OUT 
+
+FROM (
+    SELECT        
+        PRD_KODECABANG,   
+        prd_recordid,			
+        PRD_KATEGORITOKO,     
+        PRD_KODEDIVISI,        
+        PRD_KODEDEPARTEMENT,        
+        PRD_KODEKATEGORIBARANG,        
+        PRD_PRDCD,        
+        PRD_DESKRIPSIPANJANG,        
+        PRD_FRAC,        
+        PRD_UNIT,        
+        CASE        
+            WHEN PRMD_HRGJUAL IS NULL THEN PRD_HRGJUAL        
+            ELSE PRMD_HRGJUAL        
+        END AS HRGJUAL,        
+        ROUND(PRD_AVGCOST, 2) AS PRD_AVGCOST,        
+        ROUND(PRD_LASTCOST, 2) AS PRD_LASTCOST,        
+        ST_SALDOAKHIR AS LPP,        
+        PRD_FLAGBKP1,        
+        PRD_FLAGBKP2        
+    FROM tbmaster_prodmast        
+    LEFT JOIN (
+        SELECT * 
+        FROM TBTR_PROMOMD 
+        WHERE DATE_TRUNC('day', PRMD_TGLAKHIR) >= DATE_TRUNC('day', CURRENT_DATE)
+    ) prm ON PRD_PRDCD = PRMD_PRDCD        
+    LEFT JOIN (
+        SELECT * 
+        FROM TBMASTER_STOCK 
+        WHERE ST_LOKASI = '01'
+    ) st ON PRD_PRDCD = ST_PRDCD
+) SUB1       
+
+LEFT JOIN (
+    SELECT TPOD_PRDCD, SUM(QTY_PO_OUT) AS QTY_PO_OUT 
+    FROM (
+        SELECT 
+            d.tpod_prdcd,
+            SUM(d.tpod_qtypo) AS qty_po_out
+        FROM tbtr_po_d d
+        JOIN tbtr_po_h h ON d.tpod_nopo = h.tpoh_nopo
+        WHERE (d.tpod_qtypb = '0' OR d.tpod_qtypb IS NULL)
+          AND DATE_TRUNC('day', h.tpoh_tglpo + (h.tpoh_jwpb || ' days')::interval) >= DATE_TRUNC('day', CURRENT_DATE)
+          AND h.tpoh_recordid IS NULL
+        GROUP BY d.tpod_prdcd
+        ORDER BY d.tpod_prdcd
+    ) po_out
+    GROUP BY TPOD_PRDCD
+) POOUT ON SUB1.PRD_PRDCD = POOUT.TPOD_PRDCD
+
+INNER JOIN (
+    SELECT 
+        lks_prdcd,
+        lks_tiperak
+    FROM tbmaster_lokasi
+    WHERE lks_tiperak = 'B'
+) lks ON lks.lks_prdcd = SUB1.PRD_PRDCD
+
+WHERE SUB1.PRD_PRDCD LIKE '%0' 
+  AND SUB1.prd_recordid IS NULL
+
+ORDER BY 8 DESC";
 
     $stmt = $conn->query($query); // Eksekusi query dengan PDO
 
@@ -133,13 +146,12 @@ try {
 <section class="section">
   <div class="section-header d-flex justify-content-between">
     <h1>MARGIN ALL</h1>
-    <!-- Tombol untuk membuka modal -->
+
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#marginMinusModal" onclick="window.location.href='./marginMinus.php'">
-    REKAP MARGIN MINUS
-</button>
-
-
+      REKAP MARGIN MINUS
+    </button>
   </div>
+
   <div class="row">
     <div class="col-12">
       <div class="card">
@@ -148,6 +160,7 @@ try {
             <table class="table table-hover table-striped" id="table-1">
               <thead>
                 <tr>
+                  <th>NO</th>
                   <th>DIV</th>
                   <th>DEP</th>
                   <th>KAT</th>
@@ -165,9 +178,10 @@ try {
               </thead>
               <tbody>
                 <?php
-                // Loop melalui hasil query dan tampilkan data
+                $no = 1; // NOMOR URUT
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                   echo "<tr>";
+                  echo "<td>" . $no++ . "</td>";   // tampilkan nomor
                   echo "<td>" . $row['div'] . "</td>";
                   echo "<td>" . $row['dep'] . "</td>";
                   echo "<td>" . $row['kat'] . "</td>";

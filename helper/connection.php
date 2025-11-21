@@ -3,15 +3,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/*
-|--------------------------------------------------------------------------
-| KONFIGURASI SEMUA CABANG & DATABASE
-|--------------------------------------------------------------------------
-| Kamu bisa menambahkan cabang baru hanya dengan menambah 1 blok di bawah ini.
-| Struktur: $ALL_BRANCH_CONFIGS['kode_cabang']['mode_database']
-| mode_database = 'prod' (produksi) atau 'sim' (simulasi)
-*/
-
 $ALL_BRANCH_CONFIGS = [
     'spi1r' => [
         'name' => 'SPI METRO',
@@ -62,22 +53,10 @@ $ALL_BRANCH_CONFIGS = [
     ],
 ];
 
-/*
-|--------------------------------------------------------------------------
-| PEMILIHAN TARGET AKTIF DARI SESSION
-|--------------------------------------------------------------------------
-| Nilai ini ditentukan dari session (misalnya saat user memilih cabang di menu)
-| Jika belum ada, maka akan menampilkan pesan error yang jelas.
-*/
 
 $db_target = $_SESSION['db_target'] ?? '';       // contoh: 'prod' atau 'sim'
 $branch_target = $_SESSION['branch_target'] ?? ''; // contoh: 'spi1r', 'spi2u', 'igrbdl'
 
-/*
-|--------------------------------------------------------------------------
-| KONSTRUKSI KONEKSI AKTIF
-|--------------------------------------------------------------------------
-*/
 
 if (
     isset($ALL_BRANCH_CONFIGS[$branch_target]) &&
@@ -99,14 +78,6 @@ if (
     die("⚠️ Koneksi gagal: Konfigurasi untuk cabang '$branch_target' atau mode '$db_target' tidak ditemukan.");
 }
 
-/*
-|--------------------------------------------------------------------------
-| OPSIONAL: SIAPKAN SEMUA KONEKSI REMOTE
-|--------------------------------------------------------------------------
-| Jika kamu butuh akses ke cabang lain secara bersamaan, gunakan array ini:
-| $remote_connections['spi2u'] → koneksi PDO ke SPI PRINGSEWU, dst.
-| (otomatis dilewati cabang yang sedang aktif)
-*/
 
 $remote_connections = [];
 $remote_branch_names = [];
@@ -130,9 +101,4 @@ foreach ($ALL_BRANCH_CONFIGS as $code => $branch) {
     }
 }
 
-// Sekarang:
-// - $conn = koneksi aktif (berdasarkan session)
-// - $remote_connections = koneksi ke cabang lain
-// - $ALL_BRANCH_CONFIGS = daftar semua konfigurasi
-// - $remote_branch_names = daftar nama cabang (label)
 ?>

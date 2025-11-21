@@ -108,7 +108,7 @@ LEFT JOIN (
 
 WHERE c.cus_recordid IS NULL                                                                                                                                                                                         
 AND c.cus_flagmemberkhusus = 'Y'                                                                                                                                                                  
-AND c.cus_kodeigr = '1R'                                                                                                                                                                                       
+AND c.cus_kodeigr = (select prs_kodeigr from tbmaster_perusahaan)                                                                                                                                                                                       
 AND c.cus_namamember <> 'NEW'                                                                                                                                                                                     
 
 ORDER BY koordinat DESC";

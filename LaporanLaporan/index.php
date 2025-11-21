@@ -19,7 +19,7 @@ require_once '../helper/connection.php';
             <a href="../masterLokasi/" class="btn btn-primary mr-2">Master Lokasi</a>
             <a href="../cekFlag/cekFlag.php" class="btn btn-primary mr-2">Flag Jual</a>
             <a href="../poOut/poOut.php" class="btn btn-primary mr-2">PO OUT</a>
-            <a href="../Margin/marminAll.php" class="btn btn-primary mr-2">Margin All + Minus</a>
+            <a href="../Margin/marginAll.php" class="btn btn-primary mr-2">Margin All + Minus</a>
             <a href="../diskonminus/diskonMinus.php" class="btn btn-primary mr-2">Diskon Minus</a>
             <a href="../lppvsPlano/lpp_vs_plano.php" class="btn btn-primary mr-2">LPP VS PLANO</a>
             <a href="../perHargaPagi/perHargaPagi.php" class="btn btn-primary mr-2">Per Harga Pagi</a>
