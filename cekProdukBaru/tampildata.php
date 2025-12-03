@@ -97,7 +97,7 @@ foreach ($pluex as $plu0) {
     p.prd_create_dt,
     p.prd_prdcd AS plu,
     p.prd_deskripsipanjang AS deskripsi,
-        CASE
+    CASE
         WHEN td.mstd_prdcd IS NULL THEN 'BELUM PENERIMAAN'
         ELSE 'SUDAH PENERIMAAN'
     END AS keterangan_penerimaan,
@@ -109,6 +109,7 @@ foreach ($pluex as $plu0) {
     p.prd_frac,
     p.prd_kodecabang,
     p.prd_kategoritoko,
+    CASE WHEN po.tpod_prdcd IS NOT NULL THEN 'ADA' ELSE 'TIDAK ADA' END AS po,
     CASE
         WHEN l.lks_prdcd IS NULL THEN 'MOD'
         WHEN (p.prd_flagigr IS NULL OR p.prd_flagigr <> 'Y') THEN 'MD CABANG'
@@ -125,19 +126,17 @@ foreach ($pluex as $plu0) {
          AND (p.prd_kodecabang IS NOT NULL OR p.prd_kategoritoko IS NOT NULL)
         THEN 'DONE'
         ELSE 'ON PROGRESS'
-    END AS status,
-    CASE
-        WHEN td.mstd_prdcd IS NULL THEN 'BELUM PENERIMAAN'
-        ELSE 'SUDAH PENERIMAAN'
-    END AS keterangan_penerimaan
+    END AS status
 FROM tbmaster_prodmast p
 LEFT JOIN tbmaster_lokasi l 
        ON l.lks_prdcd = p.prd_prdcd
 LEFT JOIN tbtr_mstran_d td 
        ON td.mstd_prdcd = p.prd_prdcd
       AND td.mstd_typetrn = 'B'
+LEFT JOIN TBTR_PO_D po
+       ON po.tpod_prdcd = p.prd_prdcd
 WHERE p.prd_prdcd IN ($plu0)
-ORDER BY p.prd_prdcd;
+ORDER BY p.prd_prdcd
     ";
 
     $stmt = $conn->prepare($sql);

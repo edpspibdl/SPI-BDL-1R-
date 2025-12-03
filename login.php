@@ -119,7 +119,7 @@ if (isset($_POST['submit'])) {
                                                 
                                                 <option value="igrbdl" 
                                                     <?php echo ($_SESSION['branch_target'] ?? '') === 'igrbdl' ? 'selected' : ''; ?>
-                                                    disabled>
+                                                    >
                                                     INDOGROSIR BANDAR LAMPUNG
                                                 </option>
                                                 

@@ -54,6 +54,7 @@ $is_sim_mode = ($db_target === 'sim');
     <link rel="stylesheet" href="../assets/modules/izitoast/css/iziToast.min.css">
 
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/tabel.css">
     <link rel="stylesheet" href="../assets/css/components.css">
 
     <?php if ($is_sim_mode): ?>

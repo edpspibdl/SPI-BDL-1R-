@@ -54,7 +54,7 @@ FROM (
     LEFT JOIN tbmaster_customer ON cus_kodemember = jh_cus_kodemember
     WHERE COALESCE(cus_flagmemberkhusus, 'N') = 'Y'  -- MEMBER MERAH = 'Y', MEMBER BIRU <> 'Y'
       AND JH_TRANSACTIONTYPE = 'S'
-      AND CUS_KODEIGR = '1R'
+      AND CUS_KODEIGR = (select prs_kodeigr from tbmaster_perusahaan)
       AND CUS_KODEMEMBER NOT IN (SELECT TKO_KODECUSTOMER FROM TBMASTER_TOKOIGR)
       AND JH_TRANSACTIONDATE >= DATE_TRUNC('month', CURRENT_DATE)  -- AWAL BULAN OTOMATIS SESUAI BULAN SAAT INI
       AND JH_TRANSACTIONDATE <= TO_DATE(:input_value, 'YYYY-MM-DD') + INTERVAL '1 day' - INTERVAL '1 second'
@@ -468,7 +468,7 @@ $query9 = "SELECT
     COUNT(DISTINCT j.JH_CUS_KODEMEMBER) AS total_members
 FROM tbtr_jualheader j
 JOIN tbmaster_customer c ON j.JH_CUS_KODEMEMBER = c.CUS_KODEMEMBER
-WHERE c.CUS_KODEIGR = '1R'
+WHERE c.CUS_KODEIGR = (select prs_kodeigr from tbmaster_perusahaan)
 AND c.cus_recordid IS NULL
 AND c.cus_flagmemberkhusus = 'Y'
 AND c.cus_tglmulai >= CURRENT_DATE - INTERVAL '4 days'  -- Hanya 7 hari terakhir
@@ -492,7 +492,7 @@ $query10 = "
     WHERE
         c.cus_recordid IS NULL
         AND c.cus_flagmemberkhusus = 'Y'
-        AND c.cus_kodeigr = '1R'
+        AND c.cus_kodeigr = (select prs_kodeigr from tbmaster_perusahaan)
         AND c.cus_namamember <> 'NEW'
         AND c.cus_tglmulai IS NOT NULL
         AND cc.crm_alamatusaha4 IS NOT NULL

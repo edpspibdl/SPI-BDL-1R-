@@ -1,0 +1,44 @@
+/* Styling untuk tabel */
+  #table-1 {
+    width: 100%;
+    table-layout: auto;
+    /* Menyesuaikan lebar kolom dengan isi konten */
+    border-collapse: collapse;
+    /* Menggabungkan border antar sel */
+  }
+
+  #table-1 th,
+  #table-1 td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+    /* Membuat border untuk semua cell */
+  }
+
+  #table-1 th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    border-bottom: 2px solid #333;
+    /* Menambahkan pembatas tebal di bawah header */
+  }
+
+  #table-1 td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Styling untuk kolom DESK */
+  #table-1 .desk-column {
+    word-wrap: break-word;
+    /* Memastikan teks di kolom DESK membungkus */
+    white-space: normal;
+    /* Teks dapat membungkus pada kolom DESK */
+    max-width: 300px;
+    /* Membatasi lebar maksimum kolom DESK */
+  }
+
+  /* Responsif untuk tabel */
+  .table-responsive {
+    overflow-x: auto;
+  }

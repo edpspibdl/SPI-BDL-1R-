@@ -23,6 +23,8 @@ FROM
             obi_kdmember,
             cus_namamember,
             dtl_struk          no_struk,
+            tgl_hari,
+            dsp_nolisting,
             dtl_tipemember,
             ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
             SUM(dtl_gross) AS rph_gross,
@@ -39,6 +41,7 @@ FROM
                     obi_jrkekspedisi,
                     obi_kdmember,
                     cus_namamember,
+                    dsp_nolisting,
                     obi_ttlppn,
                     obi_ttlorder, ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
                     ( obi_realorder + obi_realppn) obi_real,
@@ -52,14 +55,19 @@ FROM
                     || '-'
                     || obi_tipe struk_obi,
                     TO_CHAR(obi_tglpb,'DD-MON-YY') obi_tglpb,
-                    OBI_KDEKSPEDISI
+                    OBI_KDEKSPEDISI,
+                    TO_CHAR(obi_tglstruk, 'DD') AS tgl_hari
                 FROM
                     tbtr_obi_h left
                     JOIN tbmaster_customer ON cus_kodemember = obi_kdmember
+                   LEFT JOIN (
+                        SELECT DISTINCT dsp_kodemember, dsp_notrans, dsp_nolisting, dsp_nopb
+                        FROM tbtr_dsp_spi
+                    ) tbtr_dsp_spi ON obi_nopb = dsp_nopb AND dsp_notrans = obi_notrans
                 WHERE
                     to_char(obi_tglstruk,'YYYYMMDD') BETWEEN :tanggalMulai AND :tanggalSelesai
                     and obi_recid = '6'
-                    and OBI_KDEKSPEDISI = 'Ambil di Stock Point Indogrosir'
+                    AND OBI_KDEKSPEDISI <> 'Ambil di Stock Point Indogrosir'
             ) obih left
             JOIN (
                 SELECT
@@ -244,19 +252,17 @@ FROM
 		               AND sls.trjd_quantity <> 0) alias1) view_detail
             ) view_detail_struk_revisi ON dtl_struk = struk_obi
             LEFT JOIN (
-                SELECT
-                    kode_member,
-                    no_pb,
-                    no_trans,
-                    tgl_trans,
-                    ongkir,
-                    pot_ongkir
-                FROM
-                    payment_klikigr
-                WHERE
-                    pot_ongkir <> 0
-            )                                payment_klikigr ON obi_kdmember = payment_klikigr.kode_member
-                                 AND obi_nopb = payment_klikigr.no_pb
+    SELECT
+        kode_member,
+        no_pb,
+        no_trans,
+        MAX(CASE WHEN ongkir > 0 THEN ongkir ELSE 0 END) AS ongkir,
+        SUM(pot_ongkir) AS pot_ongkir
+    FROM payment_klikigr
+    GROUP BY kode_member, no_pb, no_trans
+) payment_klikigr
+ON obi_kdmember = payment_klikigr.kode_member
+AND obi_nopb = payment_klikigr.no_pb
         GROUP BY
             obi_nopb,
             obi_kdmember,
@@ -271,7 +277,9 @@ FROM
             ongkir,
             pot_ongkir,
             ( obi_ttlorder + obi_ttlppn ),
-            OBI_KDEKSPEDISI
+            OBI_KDEKSPEDISI,
+            dsp_nolisting,
+            tgl_hari
         ORDER BY
             dtl_tanggal ASC
     )uyee
@@ -291,93 +299,32 @@ try {
 
 ?>
 
-<style>
-    .report-container {
-        margin-top: 30px;
-    }
-    .table th, .table td {
-        vertical-align: middle;
-    }
-    .table thead th {
-        background-color: #007bff;
-        color: white;
-    }
-    .table td {
-        text-align: left;
-    }
-    .table td:first-child, .table th:first-child {
-        text-align: left;
-    }
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-    
-    /* Set table layout to auto for flexible column width */
-    .table {
-        table-layout: auto; /* This allows columns to adjust based on content */
-    }
-</style><style>
-    .report-container {
-        margin-top: 30px;
-    }
-    .table th, .table td {
-        vertical-align: middle;
-    }
-    .table thead th {
-        background-color: #007bff;
-        color: white;
-    }
-    .table td {
-        text-align: left;
-        white-space: nowrap; /* Mencegah teks dibungkus dalam sel */
-    }
-    .table td:first-child, .table th:first-child {
-        text-align: left;
-    }
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    /* Apply table-layout: auto for automatic column width adjustment */
-    .table {
-        width: 100%;
-        table-layout: auto; /* Memungkinkan kolom menyesuaikan lebar berdasarkan konten */
-    }
-</style>
 
 <section class="section">
     <div class="section-header d-flex justify-content-between">
-        <h3 class="text-center">REPORT SALES VS ONGKIR AMBT</h3>
+        <h3 class="text-center">Report Sales Vs Ongkir</h3>
         <a href="../salesPromo/index.php" class="btn btn-primary">BACK</a>
+        <a href="export.php?tanggalMulai=<?= $tanggalMulai ?>&tanggalSelesai=<?= $tanggalSelesai ?>" 
+   class="btn btn-success" style="margin-bottom:10px">EXPORT EXCEL</a>
     </div>
 
     <div class="row">
         <div class="col-12">
-
-        <!-- Card Baru untuk Judul dan Tanggal Periode -->
-        
-        <div class="card">
-        <div class="card mb-3 text-center" style="background: linear-gradient(135deg, #007bff, #00c6ff); color: white;">
-        <div class="card-body">
-        <h5 class="card-title mb-1" style="font-weight: bold;">Periode Laporan</h5>
-        <p class="card-text mb-0" style="font-size: 1.1rem;">
-            <?= date('d-m-Y', strtotime($tanggalMulaiFormatted)) ?> s/d <?= date('d-m-Y', strtotime($tanggalSelesaiFormatted)) ?>
-                </p>
-            </div>
-        </div>
-
+            <!-- Card Baru untuk Judul Periode Laporan -->
+            <div class="card mb-3">
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover table-striped" id="table-1">
                             <thead>
                                 <tr>
-                                    <th>NO</th>
                                     <th>NO PB</th>
                                     <th>TGL PB</th>
                                     <th>TGL STRUK</th>
-                                    <th>KD MEMBER</th>
-                                    <th>NAMA MEMBER</th>
                                     <th>NO STRUK</th>
+                                    <th>MEMBER</th>
+                                    <th>TGL</th>
+                                    <th>NAMA MEMBER</th>
+                                    <th>NO LISTING</th>
                                     <th>TIPE MEMBER</th>
                                     <th>RUPIAH</th>
                                     <th>GROSS</th>
@@ -385,23 +332,22 @@ try {
                                     <th>NETT</th>
                                     <th>KM</th>
                                     <th>ONGKIR</th>
-                                    <th>POT ONGKIR</th> 
+                                    <th>POT ONGKIR</th>
                                     <th>EKSPEDISI</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
-                                $noUrut = 1;
-                              
+                                <?php
                                 foreach ($result as $row): ?>
-                                          <tr>
-                                        <td align="right"><?= $noUrut++ ?></td>
+                                    <tr>
                                         <td align="center"><?= $row['obi_nopb'] ?></td>
                                         <td align="center"><?= $row['obi_tglpb'] ?></td>
                                         <td align="center"><?= $row['tglstruk'] ?></td>
-                                        <td align="center"><?= $row['obi_kdmember'] ?></td>
-                                        <td align="left"><?= $row['cus_namamember'] ?></td>
                                         <td align="center"><?= $row['no_struk'] ?></td>
+                                        <td align="center"><?= $row['obi_kdmember'] ?></td>
+                                        <td align="center"><?= $row['tgl_hari'] ?></td>
+                                        <td align="left"><?= $row['cus_namamember'] ?></td>
+                                        <td align="left"><?= $row['dsp_nolisting'] ?></td>
                                         <td align="center"><?= $row['dtl_tipemember'] ?></td>
                                         <td align="right"><?= number_format($row['ttl_rupiah'], 0, '.', ',') ?></td>
                                         <td align="right"><?= number_format($row['rph_gross'], 0, '.', ',') ?></td>
@@ -412,18 +358,16 @@ try {
                                         <td align="center"><?= $row['z_pot_ongkir'] ?></td>
                                         <td align="center"><?= $row['obi_kdekspedisi'] ?></td>
                                     </tr>
-
-                                    <?php
-                                   
-                                endforeach;
-                                ?>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
+
 </section>
 
 <?php require_once '../layout/_bottom.php'; ?>
@@ -435,21 +379,25 @@ document.addEventListener('DOMContentLoaded', function () {
         responsive: false,
         lengthMenu: [10, 25, 50, 100],
         autoWidth: true,
-        columnDefs: [
-            {
-                targets: [4],
-                orderable: false
-            }
-        ],
+        columnDefs: [{
+            targets: [4],
+            orderable: false
+        }],
         buttons: [
             {
                 extend: 'copy',
-                text: 'Copy'
+                text: 'Copy',
+                exportOptions: {
+                    modifier: { page: 'all' },
+                    stripHtml: true,
+                    columns: ':visible',
+                    orthogonal: 'export'
+                }
             },
             {
                 extend: 'excel',
                 text: 'Excel',
-                filename: 'SALES_VS_ONGKIR_AMBT' + new Date().toISOString().split('T')[0],
+                filename: 'SALES_VS_ONGKIR_ALL' + new Date().toISOString().split('T')[0],
                 title: null
             }
         ],
@@ -459,8 +407,42 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Tambahkan tombol ke bagian atas kiri
     table.buttons().container().appendTo('#table-1_wrapper .col-md-6:eq(0)');
+
+    // === DETEKSI DUPLIKAT MEMBER DALAM SATU NO LISTING ===
+    let memberListingCount = {};
+
+    // Hitung kemunculan
+    table.rows().every(function () {
+        const rowData = this.data();
+        const listing = rowData[7];  // NO LISTING
+        const member = rowData[6];   // NAMA MEMBER
+
+        const key = listing + '|' + member;
+
+        memberListingCount[key] = (memberListingCount[key] || 0) + 1;
+    });
+
+    // Warnai kolom TGL, NAMA MEMBER, NO LISTING kalau duplikat
+    table.rows().every(function () {
+        const rowData = this.data();
+        const listing = rowData[7];
+        const member = rowData[6];
+        const key = listing + '|' + member;
+
+        if (memberListingCount[key] > 1) {
+            const cells = $(this.node()).find('td');
+
+            // Kolom index 5, 6, 7
+            [5, 6, 7].forEach(idx => {
+                $(cells[idx]).css({
+                    'background-color': 'red',
+                    'color': 'white',
+                    'font-weight': 'bold'
+                });
+            });
+        }
+    });
+
 });
 </script>
-

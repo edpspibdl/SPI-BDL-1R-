@@ -23,8 +23,9 @@ FROM
             obi_kdmember,
             cus_namamember,
             dtl_struk          no_struk,
+            dsp_nolisting,
             dtl_tipemember,
-            (obi_ttlorder + obi_ttlppn) ttl_rupiah,
+            ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
             SUM(dtl_gross) AS rph_gross,
             SUM(dtl_margin) AS rph_margin,
             round(SUM(dtl_netto), 2) AS sls_nett,
@@ -39,6 +40,7 @@ FROM
                     obi_jrkekspedisi,
                     obi_kdmember,
                     cus_namamember,
+                    dsp_nolisting,
                     obi_ttlppn,
                     obi_ttlorder, ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
                     ( obi_realorder + obi_realppn) obi_real,
@@ -56,6 +58,10 @@ FROM
                 FROM
                     tbtr_obi_h left
                     JOIN tbmaster_customer ON cus_kodemember = obi_kdmember
+                   LEFT JOIN (
+                        SELECT DISTINCT dsp_kodemember, dsp_notrans, dsp_nolisting, dsp_nopb
+                        FROM tbtr_dsp_spi
+                    ) tbtr_dsp_spi ON obi_nopb = dsp_nopb AND dsp_notrans = obi_notrans
                 WHERE
                     to_char(obi_tglstruk,'YYYYMMDD') BETWEEN :tanggalMulai AND :tanggalSelesai
                     and obi_recid = '6'
@@ -243,19 +249,17 @@ FROM
 		               AND sls.trjd_quantity <> 0) alias1) view_detail
             ) view_detail_struk_revisi ON dtl_struk = struk_obi
             LEFT JOIN (
-                SELECT
-                    kode_member,
-                    no_pb,
-                    no_trans,
-                    tgl_trans,
-                    ongkir,
-                    pot_ongkir
-                FROM
-                    payment_klikigr
-                WHERE
-                    pot_ongkir <> 0
-            )                                payment_klikigr ON obi_kdmember = payment_klikigr.kode_member
-                                 AND obi_nopb = payment_klikigr.no_pb
+    SELECT
+        kode_member,
+        no_pb,
+        no_trans,
+        MAX(CASE WHEN ongkir > 0 THEN ongkir ELSE 0 END) AS ongkir,
+        SUM(pot_ongkir) AS pot_ongkir
+    FROM payment_klikigr
+    GROUP BY kode_member, no_pb, no_trans
+) payment_klikigr
+ON obi_kdmember = payment_klikigr.kode_member
+AND obi_nopb = payment_klikigr.no_pb
         GROUP BY
             obi_nopb,
             obi_kdmember,
@@ -270,7 +274,8 @@ FROM
             ongkir,
             pot_ongkir,
             ( obi_ttlorder + obi_ttlppn ),
-            OBI_KDEKSPEDISI
+            OBI_KDEKSPEDISI,
+            dsp_nolisting
         ORDER BY
             dtl_tanggal ASC
     )uyee
@@ -290,81 +295,10 @@ try {
 
 ?>
 
-<style>
-    .report-container {
-        margin-top: 30px;
-    }
-
-    .table th,
-    .table td {
-        vertical-align: middle;
-    }
-
-    .table thead th {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .table td {
-        text-align: left;
-    }
-
-    .table td:first-child,
-    .table th:first-child {
-        text-align: left;
-    }
-
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    /* Set table layout to auto for flexible column width */
-    .table {
-        table-layout: auto;
-        /* This allows columns to adjust based on content */
-    }
-</style>
-<style>
-    .report-container {
-        margin-top: 30px;
-    }
-
-    .table th,
-    .table td {
-        vertical-align: middle;
-    }
-
-    .table thead th {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .table td {
-        text-align: left;
-        white-space: nowrap;
-        /* Mencegah teks dibungkus dalam sel */
-    }
-
-    .table td:first-child,
-    .table th:first-child {
-        text-align: left;
-    }
-
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    /* Apply table-layout: auto for automatic column width adjustment */
-    .table {
-        width: 100%;
-        table-layout: auto;
-        /* Memungkinkan kolom menyesuaikan lebar berdasarkan konten */
-    }
-</style>
 
 <section class="section">
     <div class="section-header d-flex justify-content-between">
-        <h3 class="text-center">REPORT SALES VS ONGKIR ALL</h3>
+        <h3 class="text-center">Report Sales Vs Ongkir</h3>
         <a href="../salesPromo/index.php" class="btn btn-primary">BACK</a>
     </div>
 
@@ -372,12 +306,6 @@ try {
         <div class="col-12">
             <!-- Card Baru untuk Judul Periode Laporan -->
             <div class="card mb-3">
-                <div class="card-body text-center" style="background-color: rgb(52, 160, 248); color: white; border-radius: 10px;">
-                    <h4 class="card-title" style="font-weight: bold; font-size: 1.3rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">
-                        Periode Laporan:
-                        <span style="font-size: 1.4rem; color: #ffd700;"><?= date('d-m-Y', strtotime($tanggalMulaiFormatted)) ?> s/d <?= date('d-m-Y', strtotime($tanggalSelesaiFormatted)) ?></span>
-                    </h4>
-                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover table-striped" id="table-1">
@@ -386,7 +314,7 @@ try {
                                     <th>NO PB</th>
                                     <th>TGL PB</th>
                                     <th>TGL STRUK</th>
-                                    <th>KD MEMBER</th>
+                                    <th>MEMBER</th>
                                     <th>NAMA MEMBER</th>
                                     <th>NO STRUK</th>
                                     <th>TIPE MEMBER</th>

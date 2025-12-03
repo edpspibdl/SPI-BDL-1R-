@@ -1,17 +1,14 @@
 <?php
+require_once '../helper/connection.php';
+require_once '../helper/PHP_XLSXWriter/xlsxwriter.class.php';
 
-require_once '../layout/_top.php'; // Include top layout (menu, etc.)
-require_once '../helper/connection.php'; // Ensure this is the correct path
+$tanggalMulai = $_GET['tanggalMulai'] ?? '';
+$tanggalSelesai = $_GET['tanggalSelesai'] ?? '';
 
-// Get the start and end date from the form input
-$tanggalMulai = isset($_GET['tanggalMulai']) ? $_GET['tanggalMulai'] : '';
-$tanggalSelesai = isset($_GET['tanggalSelesai']) ? $_GET['tanggalSelesai'] : '';
+if (!$tanggalMulai || !$tanggalSelesai) {
+    die("Tanggal tidak boleh kosong.");
+}
 
-// Convert the dates to the format that SQL expects (YYYYMMDD)
-$tanggalMulaiFormatted = date('Ymd', strtotime($tanggalMulai));
-$tanggalSelesaiFormatted = date('Ymd', strtotime($tanggalSelesai));
-
-// Prepare the SQL query with placeholders for the date range
 $query = "SELECT
     *
 FROM
@@ -23,6 +20,8 @@ FROM
             obi_kdmember,
             cus_namamember,
             dtl_struk          no_struk,
+            tgl_hari,
+            dsp_nolisting,
             dtl_tipemember,
             ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
             SUM(dtl_gross) AS rph_gross,
@@ -39,6 +38,7 @@ FROM
                     obi_jrkekspedisi,
                     obi_kdmember,
                     cus_namamember,
+                    dsp_nolisting,
                     obi_ttlppn,
                     obi_ttlorder, ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
                     ( obi_realorder + obi_realppn) obi_real,
@@ -52,14 +52,19 @@ FROM
                     || '-'
                     || obi_tipe struk_obi,
                     TO_CHAR(obi_tglpb,'DD-MON-YY') obi_tglpb,
-                    OBI_KDEKSPEDISI
+                    OBI_KDEKSPEDISI,
+                    TO_CHAR(obi_tglstruk, 'DD') AS tgl_hari
                 FROM
                     tbtr_obi_h left
                     JOIN tbmaster_customer ON cus_kodemember = obi_kdmember
+                   LEFT JOIN (
+                        SELECT DISTINCT dsp_kodemember, dsp_notrans, dsp_nolisting, dsp_nopb
+                        FROM tbtr_dsp_spi
+                    ) tbtr_dsp_spi ON obi_nopb = dsp_nopb AND dsp_notrans = obi_notrans
                 WHERE
                     to_char(obi_tglstruk,'YYYYMMDD') BETWEEN :tanggalMulai AND :tanggalSelesai
                     and obi_recid = '6'
-                    and OBI_KDEKSPEDISI <> 'Ambil di Stock Point Indogrosir'
+                    AND OBI_KDEKSPEDISI <> 'Ambil di Stock Point Indogrosir'
             ) obih left
             JOIN (
                 SELECT
@@ -244,19 +249,17 @@ FROM
 		               AND sls.trjd_quantity <> 0) alias1) view_detail
             ) view_detail_struk_revisi ON dtl_struk = struk_obi
             LEFT JOIN (
-                SELECT
-                    kode_member,
-                    no_pb,
-                    no_trans,
-                    tgl_trans,
-                    ongkir,
-                    pot_ongkir
-                FROM
-                    payment_klikigr
-                WHERE
-                    pot_ongkir <> 0
-            )                                payment_klikigr ON obi_kdmember = payment_klikigr.kode_member
-                                 AND obi_nopb = payment_klikigr.no_pb
+    SELECT
+        kode_member,
+        no_pb,
+        no_trans,
+        MAX(CASE WHEN ongkir > 0 THEN ongkir ELSE 0 END) AS ongkir,
+        SUM(pot_ongkir) AS pot_ongkir
+    FROM payment_klikigr
+    GROUP BY kode_member, no_pb, no_trans
+) payment_klikigr
+ON obi_kdmember = payment_klikigr.kode_member
+AND obi_nopb = payment_klikigr.no_pb
         GROUP BY
             obi_nopb,
             obi_kdmember,
@@ -271,196 +274,81 @@ FROM
             ongkir,
             pot_ongkir,
             ( obi_ttlorder + obi_ttlppn ),
-            OBI_KDEKSPEDISI
+            OBI_KDEKSPEDISI,
+            dsp_nolisting,
+            tgl_hari
         ORDER BY
             dtl_tanggal ASC
     )uyee
 ";
 
-// Execute the query and fetch the results using the PDO connection
-try {
-    $stmt = $conn->prepare($query);
-    $stmt->bindValue(':tanggalMulai', $tanggalMulaiFormatted);
-    $stmt->bindValue(':tanggalSelesai', $tanggalSelesaiFormatted);
-    $stmt->execute();
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo "Query failed: " . $e->getMessage();
-    exit;
+$stmt = $conn->prepare($query);
+$stmt->bindValue(':tanggalMulai', $tanggalMulai);
+$stmt->bindValue(':tanggalSelesai', $tanggalSelesai);
+$stmt->execute();
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// **Cari duplikat MEMBER + NO LISTING**
+$duplikat = [];
+$temp = [];
+
+foreach ($rows as $r) {
+    $key = $r['cus_namamember'] . '-' . $r['dsp_nolisting'];
+    if (!isset($temp[$key])) {
+        $temp[$key] = 0;
+    }
+    $temp[$key]++;
 }
 
-?>
+foreach ($temp as $key => $count) {
+    if ($count > 1) {
+        $duplikat[$key] = true;
+    }
+}
 
-<style>
-    .report-container {
-        margin-top: 30px;
-    }
-    .table th, .table td {
-        vertical-align: middle;
-    }
-    .table thead th {
-        background-color: #007bff;
-        color: white;
-    }
-    .table td {
-        text-align: left;
-    }
-    .table td:first-child, .table th:first-child {
-        text-align: left;
-    }
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-    
-    /* Set table layout to auto for flexible column width */
-    .table {
-        table-layout: auto; /* This allows columns to adjust based on content */
-    }
-</style><style>
-    .report-container {
-        margin-top: 30px;
-    }
-    .table th, .table td {
-        vertical-align: middle;
-    }
-    .table thead th {
-        background-color: #007bff;
-        color: white;
-    }
-    .table td {
-        text-align: left;
-        white-space: nowrap; /* Mencegah teks dibungkus dalam sel */
-    }
-    .table td:first-child, .table th:first-child {
-        text-align: left;
-    }
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
+// STYLE Excel
+$headerStyle = ['font-style' => 'bold', 'border' => 'left,right,top,bottom'];
+$normal = ['border' => 'left,right,top,bottom'];
 
-    /* Apply table-layout: auto for automatic column width adjustment */
-    .table {
-        width: 100%;
-        table-layout: auto; /* Memungkinkan kolom menyesuaikan lebar berdasarkan konten */
-    }
-</style>
+$redStyle = [
+    'fill' => '#FF0000',
+    'font-color' => '#FFFFFF',
+    'font-style' => 'bold',
+    'border' => 'left,right,top,bottom'
+];
 
-<section class="section">
-    <div class="section-header d-flex justify-content-between">
-        <h3 class="text-center">REPORT SALES VS ONGKIR KIRIM IPP</h3>
-        <a href="../salesPromo/index.php" class="btn btn-primary">BACK</a>
-    </div>
+$writer = new XLSXWriter();
+$writer->writeSheetHeader('DATA', [
+    'NO PB' => 'string', 'TGL PB' => 'string', 'TGL STRUK' => 'string', 'NO STRUK' => 'string',
+    'MEMBER' => 'string', 'TGL' => 'string', 'NAMA MEMBER' => 'string', 'NO LISTING' => 'string',
+    'TIPE' => 'string', 'RUPIAH' => 'integer', 'GROSS' => 'integer', 'MARGIN' => 'integer',
+    'NETT' => 'integer', 'KM' => 'integer', 'ONGKIR' => 'integer', 'POT ONGKIR' => 'integer',
+    'EKSPEDISI' => 'string'
+], $headerStyle);
 
-    <div class="row">
-        <div class="col-12">
+// DATA
+foreach ($rows as $r) {
+    $key = $r['cus_namamember'] . '-' . $r['dsp_nolisting'];
 
-        <!-- Card Baru untuk Judul dan Tanggal Periode -->
-        
-        <div class="card">
-        <div class="card mb-3 text-center" style="background: linear-gradient(135deg, #007bff, #00c6ff); color: white;">
-        <div class="card-body">
-        <h5 class="card-title mb-1" style="font-weight: bold;">Periode Laporan</h5>
-        <p class="card-text mb-0" style="font-size: 1.1rem;">
-            <?= date('d-m-Y', strtotime($tanggalMulaiFormatted)) ?> s/d <?= date('d-m-Y', strtotime($tanggalSelesaiFormatted)) ?>
-                </p>
-            </div>
-        </div>
+    $styleTgl = $duplikat[$key] ?? false ? $redStyle : $normal;
+    $styleName = $duplikat[$key] ?? false ? $redStyle : $normal;
+    $styleListing = $duplikat[$key] ?? false ? $redStyle : $normal;
 
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped" id="table-1">
-                            <thead>
-                                <tr>
-                                    <th>NO</th>
-                                    <th>NO PB</th>
-                                    <th>TGL PB</th>
-                                    <th>TGL STRUK</th>
-                                    <th>KD MEMBER</th>
-                                    <th>NAMA MEMBER</th>
-                                    <th>NO STRUK</th>
-                                    <th>TIPE MEMBER</th>
-                                    <th>RUPIAH</th>
-                                    <th>GROSS</th>
-                                    <th>MARGIN</th>
-                                    <th>NETT</th>
-                                    <th>KM</th>
-                                    <th>ONGKIR</th>
-                                    <th>POT ONGKIR</th> 
-                                    <th>EKSPEDISI</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php 
-                                $noUrut = 1;
-                              
-                                foreach ($result as $row): ?>
-                                          <tr>
-                                        <td align="right"><?= $noUrut++ ?></td>
-                                        <td align="center"><?= $row['obi_nopb'] ?></td>
-                                        <td align="center"><?= $row['obi_tglpb'] ?></td>
-                                        <td align="center"><?= $row['tglstruk'] ?></td>
-                                        <td align="center"><?= $row['obi_kdmember'] ?></td>
-                                        <td align="left"><?= $row['cus_namamember'] ?></td>
-                                        <td align="center"><?= $row['no_struk'] ?></td>
-                                        <td align="center"><?= $row['dtl_tipemember'] ?></td>
-                                        <td align="right"><?= number_format($row['ttl_rupiah'], 0, '.', ',') ?></td>
-                                        <td align="right"><?= number_format($row['rph_gross'], 0, '.', ',') ?></td>
-                                        <td align="right"><?= number_format($row['rph_margin'], 0, '.', ',') ?></td>
-                                        <td align="right"><?= number_format($row['sls_nett'], 0, '.', ',') ?></td>
-                                        <td align="right"><?= number_format($row['km'], 2, '.', ',') ?></td>
-                                        <td align="center"><?= $row['f_ongkir'] ?></td>
-                                        <td align="center"><?= $row['z_pot_ongkir'] ?></td>
-                                        <td align="center"><?= $row['obi_kdekspedisi'] ?></td>
-                                    </tr>
+    $writer->writeSheetRow('DATA', [
+        $r['obi_nopb'], $r['obi_tglpb'], $r['tglstruk'], $r['no_struk'],
+        $r['obi_kdmember'], $r['tgl_hari'], $r['cus_namamember'], $r['dsp_nolisting'],
+        $r['dtl_tipemember'], $r['ttl_rupiah'], $r['rph_gross'], $r['rph_margin'],
+        $r['sls_nett'], $r['km'], $r['f_ongkir'], $r['z_pot_ongkir'], $r['obi_kdekspedisi']
+    ], [
+        $normal, $normal, $normal, $normal,
+        $normal, $styleTgl, $styleName, $styleListing,
+        $normal, $normal, $normal, $normal,
+        $normal, $normal, $normal, $normal, $normal
+    ]);
+}
 
-                                    <?php
-                                   
-                                endforeach;
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<?php require_once '../layout/_bottom.php'; ?>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const table = $('#table-1').DataTable({
-        responsive: false,
-        lengthMenu: [10, 25, 50, 100],
-        autoWidth: true,
-        columnDefs: [
-            {
-                targets: [4],
-                orderable: false
-            }
-        ],
-        buttons: [
-            {
-                extend: 'copy',
-                text: 'Copy'
-            },
-            {
-                extend: 'excel',
-                text: 'Excel',
-                filename: 'SALES_VS_ONGKIR_KIRIM_IPP' + new Date().toISOString().split('T')[0],
-                title: null
-            }
-        ],
-        dom: 'Bfrtip',
-        initComplete: function () {
-            this.api().columns.adjust().draw();
-        }
-    });
-
-    // Tambahkan tombol ke bagian atas kiri
-    table.buttons().container().appendTo('#table-1_wrapper .col-md-6:eq(0)');
-});
-</script>
-
+$file = "SALES_VS_ONGKIR_" . date("Ymd_His") . ".xlsx";
+header('Content-disposition: attachment; filename="' . $file . '"');
+header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+$writer->writeToStdOut();
+exit;

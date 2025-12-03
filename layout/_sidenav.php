@@ -159,6 +159,7 @@
       <!-- Kelompok 2 (Laporan) -->
       <li><a href="../laporanLaporan/" class="nav-link"><i class="fas fa-file-alt"></i> <span>Laporan Laporan</span></a></li>
       <li><a href="../MonitoringIPP/" class="nav-link"><i class="fas fa-truck"></i> <span>Monitoring IPP</span></a></li>
+      <li><a href="../laporanipp/" class="nav-link"><i class="fas fa-truck"></i> <span>Laporan Fin IPP</span></a></li>
 
       <!-- Garis pemisah -->
       <li>
