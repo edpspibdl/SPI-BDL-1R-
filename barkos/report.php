@@ -13,122 +13,115 @@ $bln1 = sprintf("%02s", $bln_1);
 $bln2 = sprintf("%02s", $bln_2);
 $bln3 = sprintf("%02s", $bln_3);
 
-$query = "
-SELECT
-    hgb.kodesup AS kode_supplier,
-    sup.sup_namasupplier AS nama_supplier,
-    rsl.rsl_prdcd AS plu,
-    pm.prd_deskripsipanjang AS desk,
-    pm.prd_kodetag as tag,
-    rsl.avgsalesqty AS avg_sales,
-    rsl.avgsalesrph AS avg_rph,
-    rsl.sales_1,
-    rsl.sales_2,
-    rsl.sales_3,
-    ROUND(COALESCE(CASE WHEN slv.po != 0 THEN (slv.bpb / slv.po) * 100 ELSE 0 END, 0), 0) || ' %' AS SL,
-    COALESCE(st.st_saldoakhir, 0) AS saldo_akhir,
-    COALESCE(ROUND(rsl.avgsalesqty / 30 * :input_value, 2), 0) AS SPD,  
-    COALESCE(
-        ROUND(
-            CASE
-                WHEN rsl.avgsalesqty / 30 * :input_value = 0 THEN 0
-                ELSE COALESCE(st.st_saldoakhir, 0) / (rsl.avgsalesqty / 30 * :input_value)
-            END, 2
-        ), 0.00
-    ) AS DSI,
-     CASE WHEN POOUT IS NULL THEN 'TIDAK ADA PO' ELSE 'ADA PO' END KET_PO,
-    mstd.BPB_TERAKHIR,
-    CASE
-        WHEN COALESCE(st.st_saldoakhir, 0) = 0 OR COALESCE(st.st_saldoakhir, 0) < COALESCE(ROUND(rsl.avgsalesqty / 30 * :input_value, 2), 0) THEN 'Barkos'
-        ELSE 'Aman'
-    END AS keterangan
-FROM
-    tbmaster_prodmast pm
-    LEFT JOIN (
-        SELECT
-            rsl_prdcd,
-            ROUND(SUM(RSL_qty_$bln1)) AS sales_1,
-            ROUND(SUM(RSL_qty_$bln2)) AS sales_2,
-            ROUND(SUM(RSL_qty_$bln3)) AS sales_3,
+$query = "SELECT
+        hgb.kodesup AS kode_supplier,
+        sup.sup_namasupplier AS nama_supplier,
+        rsl.rsl_prdcd AS plu,
+        pm.prd_deskripsipanjang AS desk,
+        pm.prd_kodetag as tag,
+        rsl.avgsalesqty AS avg_sales,
+        rsl.avgsalesrph AS avg_rph,
+        rsl.sales_1,
+        rsl.sales_2,
+        rsl.sales_3,
+        ROUND(COALESCE(CASE WHEN slv.po != 0 THEN (slv.bpb / slv.po) * 100 ELSE 0 END, 0), 0) || ' %' AS SL,
+        COALESCE(st.st_saldoakhir, 0) AS saldo_akhir,
+        COALESCE(ROUND(rsl.avgsalesqty / 30 * :input_value, 2), 0) AS SPD,  
+        COALESCE(
             ROUND(
-                (COALESCE(SUM(RSL_qty_$bln1), 0) + COALESCE(SUM(RSL_qty_$bln2), 0) + COALESCE(SUM(RSL_qty_$bln3), 0)) / 3
-            ) AS avgsalesqty,
-            ROUND(
-                (COALESCE(SUM(RSL_rph_$bln1), 0) + COALESCE(SUM(RSL_rph_$bln2), 0) + COALESCE(SUM(RSL_rph_$bln3), 0)) / 3
-            ) AS avgsalesrph
-        FROM
-            tbtr_rekapsalesbulanan
-        GROUP BY
-            rsl_prdcd
-    ) rsl ON pm.prd_prdcd = rsl.rsl_prdcd
-    LEFT JOIN (
+                CASE
+                    WHEN rsl.avgsalesqty / 30 * :input_value = 0 THEN 0
+                    ELSE COALESCE(st.st_saldoakhir, 0) / (rsl.avgsalesqty / 30 * :input_value)
+                END, 2
+            ), 0.00
+        ) AS DSI,
+        CASE WHEN POOUT IS NULL THEN 'TIDAK ADA PO / PO MATI TIDAK KIRIM' ELSE 'ADA PO' END KET_PO,
+        mstd.BPB_TERAKHIR,
+        CASE
+            WHEN COALESCE(st.st_saldoakhir, 0) = 0 OR COALESCE(st.st_saldoakhir, 0) < COALESCE(ROUND(rsl.avgsalesqty / 30 * :input_value, 2), 0) THEN 'Barkos'
+            ELSE 'Aman'
+        END AS keterangan
+    FROM
+        tbmaster_prodmast pm
+        LEFT JOIN (
+            SELECT
+                rsl_prdcd,
+                ROUND(SUM(RSL_qty_$bln1)) AS sales_1,
+                ROUND(SUM(RSL_qty_$bln2)) AS sales_2,
+                ROUND(SUM(RSL_qty_$bln3)) AS sales_3,
+                ROUND(
+                    (COALESCE(SUM(RSL_qty_$bln1), 0) + COALESCE(SUM(RSL_qty_$bln2), 0) + COALESCE(SUM(RSL_qty_$bln3), 0)) / 3
+                ) AS avgsalesqty,
+                ROUND(
+                    (COALESCE(SUM(RSL_rph_$bln1), 0) + COALESCE(SUM(RSL_rph_$bln2), 0) + COALESCE(SUM(RSL_rph_$bln3), 0)) / 3
+                ) AS avgsalesrph
+            FROM
+                tbtr_rekapsalesbulanan
+            GROUP BY
+                rsl_prdcd
+        ) rsl ON pm.prd_prdcd = rsl.rsl_prdcd
+        LEFT JOIN (
+            SELECT
+                hgb_prdcd,
+                hgb_kodesupplier AS kodesup
+            FROM
+                tbmaster_hargabeli
+            WHERE
+                hgb_tipe = '2'
+        ) hgb ON pm.prd_prdcd = hgb.hgb_prdcd
+        LEFT JOIN (
+            SELECT
+                st_prdcd,
+                st_saldoakhir
+            FROM
+                tbmaster_stock
+            WHERE
+                st_lokasi = '01'
+        ) st ON pm.prd_prdcd = st.st_prdcd
+        LEFT JOIN tbmaster_supplier sup ON hgb.kodesup = sup.sup_kodesupplier
+        LEFT JOIN (
+            SELECT 
+                MSTD_PRDCD,
+                MAX(MSTD_TGLDOC) AS BPB_TERAKHIR
+            FROM TBTR_MSTRAN_D
+            WHERE MSTD_TYPETRN = 'B'
+            GROUP BY MSTD_PRDCD
+        ) mstd ON pm.prd_prdcd = mstd.MSTD_PRDCD
+          LEFT JOIN (
         SELECT
-            hgb_prdcd,
-            hgb_kodesupplier AS kodesup
-        FROM
-            tbmaster_hargabeli
-        WHERE
-            hgb_tipe = '2'
-    ) hgb ON pm.prd_prdcd = hgb.hgb_prdcd
-    LEFT JOIN (
-        SELECT
-            st_prdcd,
-            st_saldoakhir
-        FROM
-            tbmaster_stock
-        WHERE
-            st_lokasi = '01'
-    ) st ON pm.prd_prdcd = st.st_prdcd
-    LEFT JOIN tbmaster_supplier sup ON hgb.kodesup = sup.sup_kodesupplier
-    LEFT JOIN (
-        SELECT 
-            MSTD_PRDCD,
-            MAX(MSTD_TGLDOC) AS BPB_TERAKHIR
-        FROM TBTR_MSTRAN_D
-        WHERE MSTD_TYPETRN = 'B'
-        GROUP BY MSTD_PRDCD
-    ) mstd ON pm.prd_prdcd = mstd.MSTD_PRDCD
-     LEFT JOIN (
-    SELECT
-        sl_prdcd_po AS slv_prdcd,
-        SUM(sl_qty_po) AS po,
-        SUM(sl_qty_bpb) AS bpb
-    FROM (
-        SELECT
-            po.tpod_prdcd AS sl_prdcd_po,
-            po.tpod_qtypo AS sl_qty_po,
-            COALESCE(mst.mstd_qty, 0) AS sl_qty_bpb
-        FROM tbtr_po_d po
-        LEFT JOIN tbtr_mstran_d mst ON po.tpod_prdcd = mst.mstd_prdcd
-                                 AND po.tpod_nopo = mst.mstd_nopo
-        WHERE po.tpod_prdcd IS NOT NULL
-    ) subquery
-    GROUP BY sl_prdcd_po
-) slv ON pm.prd_prdcd = slv.slv_prdcd
- LEFT JOIN (
-    SELECT tpod_prdcd,
-           SUM(tpod_qtypo)  AS POOUT,
-           COUNT(tpod_nopo) AS JLHPOOUT
-    FROM tbtr_po_d
-    WHERE tpod_nopo IN (
-        SELECT tpoh_nopo
-        FROM tbtr_po_h
-        WHERE tpoh_recordid IS NULL
-          AND (tpoh_tglpo + INTERVAL '1 day' * tpoh_jwpb) >= CURRENT_DATE
-    )
-    GROUP BY tpod_prdcd
-) po ON pm.prd_prdcd = po.tpod_prdcd
-WHERE
-    pm.prd_recordid IS NULL
-    AND pm.prd_prdcd LIKE '%0'
-    AND rsl.rsl_prdcd IS NOT NULL
-    AND (pm.prd_kodetag IS NULL OR pm.prd_kodetag NOT IN ('H',
-                                                'A',
-                                                'N',
-                                                'O',
-                                                'X',
-                                                'T',
-                                                'G'))
+            sl_prdcd_po AS slv_prdcd,
+            SUM(sl_qty_po) AS po,
+            SUM(sl_qty_bpb) AS bpb
+        FROM (
+            SELECT
+                po.tpod_prdcd AS sl_prdcd_po,
+                po.tpod_qtypo AS sl_qty_po,
+                COALESCE(mst.mstd_qty, 0) AS sl_qty_bpb
+            FROM tbtr_po_d po
+            LEFT JOIN tbtr_mstran_d mst ON po.tpod_prdcd = mst.mstd_prdcd
+                                      AND po.tpod_nopo = mst.mstd_nopo
+            WHERE po.tpod_prdcd IS NOT NULL
+        ) subquery
+        GROUP BY sl_prdcd_po
+    ) slv ON pm.prd_prdcd = slv.slv_prdcd
+      LEFT JOIN (
+        SELECT tpod_prdcd,
+                SUM(tpod_qtypo)  AS POOUT,
+                COUNT(tpod_nopo) AS JLHPOUT
+        FROM tbtr_po_d
+        WHERE tpod_nopo IN (
+            SELECT tpoh_nopo
+            FROM tbtr_po_h
+            WHERE tpoh_recordid IS NULL
+              AND (tpoh_tglpo + INTERVAL '1 day' * tpoh_jwpb) >= CURRENT_DATE
+        )
+        GROUP BY tpod_prdcd
+    ) po ON pm.prd_prdcd = po.tpod_prdcd
+    WHERE
+        pm.prd_recordid IS NULL
+        AND pm.prd_prdcd LIKE '%0'
+        AND rsl.rsl_prdcd IS NOT NULL
+        AND (pm.prd_kodetag IS NULL OR pm.prd_kodetag NOT IN ('H','A','N','O','X','T','G'))
     AND pm.prd_prdcd NOT IN (
         '0002310', '0003030', '0003040', '0005090', '0009170', '0009190', '0009380', '0009480', '0011280', 
         '0030600', '0030610', '0030650', '0030680', '0030700', '0032020', '0032070', '0033500', '0033560', 

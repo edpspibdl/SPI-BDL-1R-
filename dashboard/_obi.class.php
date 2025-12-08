@@ -267,33 +267,31 @@ FROM
     return $result;
 }
 
-
-    public function notifdspb($id)
+  public function notifdspb($id)
 {
-    $query = "SELECT
-                to_char(obi_tgltrans, 'DD-MON-YYYY') AS obi_tgl,
-                COUNT(*) AS belum
-            FROM
-                tbtr_obi_h hdr
-            WHERE
-                obi_tgltrans >= current_date - interval '3 day'
-                AND obi_tgltrans <= current_date - interval '{$id} days'
-                AND (substr(coalesce(hdr.obi_recid, '1'), 1, 1) < '6'
-                     OR hdr.obi_recid IS NULL
-                     OR substr(hdr.obi_recid, 1, 1) <> 'B')
-            GROUP BY
-                obi_tgltrans
-            ORDER BY
-                obi_tgltrans";
+    $query = "
+        SELECT 
+            TO_CHAR(hdr.obi_tgltrans, 'DD-MON-YYYY') AS obi_tgl,
+            COUNT(*) AS belum
+        FROM tbtr_obi_h hdr
+        WHERE 
+            hdr.obi_tgltrans::date >= CURRENT_DATE - INTERVAL '7 days'
+            AND hdr.obi_tgltrans::date <= CURRENT_DATE
+            AND (
+                hdr.obi_recid IS NULL
+                OR SUBSTRING(hdr.obi_recid, 1, 1) < '6'
+            )
+        GROUP BY hdr.obi_tgltrans
+        ORDER BY hdr.obi_tgltrans DESC
+    ";
 
     $stmt = $this->conn->prepare($query);
+
     try {
         $stmt->execute();
-        $result = $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         die('Error: ' . $e->getMessage());
     }
-    return $result;
 }
-
 }

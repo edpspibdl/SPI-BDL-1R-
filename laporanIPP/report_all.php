@@ -19,11 +19,11 @@ FROM
         SELECT
             obi_nopb,
             obi_tglpb,
+            tgl_hari,
             dtl_tanggal        tglstruk,
             obi_kdmember,
             cus_namamember,
             dtl_struk          no_struk,
-            tgl_hari,
             dsp_nolisting,
             dtl_tipemember,
             ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
@@ -55,8 +55,8 @@ FROM
                     || '-'
                     || obi_tipe struk_obi,
                     TO_CHAR(obi_tglpb,'DD-MON-YY') obi_tglpb,
-                    OBI_KDEKSPEDISI,
-                    TO_CHAR(obi_tglstruk, 'DD') AS tgl_hari
+                    TO_CHAR(obi_tglstruk,'DD') AS tgl_hari,
+                    OBI_KDEKSPEDISI
                 FROM
                     tbtr_obi_h left
                     JOIN tbmaster_customer ON cus_kodemember = obi_kdmember
@@ -67,7 +67,6 @@ FROM
                 WHERE
                     to_char(obi_tglstruk,'YYYYMMDD') BETWEEN :tanggalMulai AND :tanggalSelesai
                     and obi_recid = '6'
-                    AND OBI_KDEKSPEDISI <> 'Ambil di Stock Point Indogrosir'
             ) obih left
             JOIN (
                 SELECT
@@ -303,9 +302,9 @@ try {
 <section class="section">
     <div class="section-header d-flex justify-content-between">
         <h3 class="text-center">Report Sales Vs Ongkir</h3>
-        <a href="../salesPromo/index.php" class="btn btn-primary">BACK</a>
-        <a href="export.php?tanggalMulai=<?= $tanggalMulai ?>&tanggalSelesai=<?= $tanggalSelesai ?>" 
+        <a href="export.php?tanggalMulai=<?= $tanggalMulaiFormatted ?>&tanggalSelesai=<?= $tanggalSelesaiFormatted ?>" 
    class="btn btn-success" style="margin-bottom:10px">EXPORT EXCEL</a>
+
     </div>
 
     <div class="row">

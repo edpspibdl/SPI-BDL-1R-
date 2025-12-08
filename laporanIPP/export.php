@@ -2,12 +2,13 @@
 require_once '../helper/connection.php';
 require_once '../helper/PHP_XLSXWriter/xlsxwriter.class.php';
 
-$tanggalMulai = $_GET['tanggalMulai'] ?? '';
-$tanggalSelesai = $_GET['tanggalSelesai'] ?? '';
+// Get the start and end date from the form input
+$tanggalMulai = isset($_GET['tanggalMulai']) ? $_GET['tanggalMulai'] : '';
+$tanggalSelesai = isset($_GET['tanggalSelesai']) ? $_GET['tanggalSelesai'] : '';
 
-if (!$tanggalMulai || !$tanggalSelesai) {
-    die("Tanggal tidak boleh kosong.");
-}
+// Convert the dates to the format that SQL expects (YYYYMMDD)
+$tanggalMulaiFormatted = date('Ymd', strtotime($tanggalMulai));
+$tanggalSelesaiFormatted = date('Ymd', strtotime($tanggalSelesai));
 
 $query = "SELECT
     *
@@ -16,11 +17,11 @@ FROM
         SELECT
             obi_nopb,
             obi_tglpb,
+	  tgl_hari,
             dtl_tanggal        tglstruk,
             obi_kdmember,
             cus_namamember,
             dtl_struk          no_struk,
-            tgl_hari,
             dsp_nolisting,
             dtl_tipemember,
             ( obi_ttlorder + obi_ttlppn ) ttl_rupiah,
@@ -52,8 +53,8 @@ FROM
                     || '-'
                     || obi_tipe struk_obi,
                     TO_CHAR(obi_tglpb,'DD-MON-YY') obi_tglpb,
-                    OBI_KDEKSPEDISI,
-                    TO_CHAR(obi_tglstruk, 'DD') AS tgl_hari
+		TO_CHAR(obi_tglstruk,'DD') AS tgl_hari,
+                    OBI_KDEKSPEDISI
                 FROM
                     tbtr_obi_h left
                     JOIN tbmaster_customer ON cus_kodemember = obi_kdmember
@@ -64,7 +65,7 @@ FROM
                 WHERE
                     to_char(obi_tglstruk,'YYYYMMDD') BETWEEN :tanggalMulai AND :tanggalSelesai
                     and obi_recid = '6'
-                    AND OBI_KDEKSPEDISI <> 'Ambil di Stock Point Indogrosir'
+		and OBI_KDEKSPEDISI <> 'Ambil di Stock Point Indogrosir'
             ) obih left
             JOIN (
                 SELECT
@@ -276,7 +277,7 @@ AND obi_nopb = payment_klikigr.no_pb
             ( obi_ttlorder + obi_ttlppn ),
             OBI_KDEKSPEDISI,
             dsp_nolisting,
-            tgl_hari
+	    tgl_hari
         ORDER BY
             dtl_tanggal ASC
     )uyee
