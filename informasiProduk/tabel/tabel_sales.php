@@ -1,40 +1,56 @@
-<div class="d-flex flex-wrap" style="gap: 0rem;">
-    <?php if (!empty($trensale)): ?>
-        <!-- Tampilkan card hanya jika ada data -->
-        <div class="card w-100 p-2">
-            <div class="card-body p-2" id="cashbackContainer">
-                <h4 class="text-center mb-1 mt-1">Sales</h4>
-                <table class="table table-bordered table-sm mb-0">
-                    <thead>
-                        <tr class="primary text-center">
-                            <th>Bulan</th>
-                            <th>QTY</th>
-                            <th>RUPIAH</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($trensale as $row): ?>
-                            <?php
-                            $bulan = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOV', 'DES'];
-                            for ($i = 1; $i <= 12; $i++):
-                                $qty = number_format($row['sls_qty_' . str_pad($i, 2, '0', STR_PAD_LEFT)] ?? 0);
-                                $rph = number_format($row['sls_rph_' . str_pad($i, 2, '0', STR_PAD_LEFT)] ?? 0);
-                            ?>
-                                <tr>
-                                    <td><?= $bulan[$i - 1] ?></td>
-                                    <td align="right"><?= $qty ?></td>
-                                    <td align="right"><?= $rph ?></td>
-                                </tr>
-                            <?php endfor; ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+<div class="row">
+
+    <!-- ================= TREND SALES ================= -->
+    <div class="col-sm-4">
+        <div class="card-body p-0">
+            <table class="table table-sm justify-content-md-center col-sm-12 p-0" id="table-trendsales">
+                <thead class="theadDataTables">
+                    <tr>
+                        <th class="text-center" colspan="3" scope="colgroup">TREND SALES</th>
+                    </tr>
+                    <tr>
+                        <th width="20%"></th>
+                        <th width="40%" class="text-center small">QTY</th>
+                        <th width="40%" class="text-center small">RUPIAH</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php
+                $bulan = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+
+                if (!empty($trensale)) :
+                    foreach ($trensale as $row) :
+                        for ($i = 1; $i <= 12; $i++) :
+                            $idx = str_pad($i, 2, '0', STR_PAD_LEFT);
+                            $qty = number_format($row['sls_qty_'.$idx] ?? 0);
+                            $rph = number_format($row['sls_rph_'.$idx] ?? 0);
+                ?>
+                    <tr class="baris">
+                        <td class="p-0 text-center"><?= $bulan[$i-1] ?></td>
+                        <td class="p-0 text-right"><?= $qty ?></td>
+                        <td class="p-0 text-right"><?= $rph ?></td>
+                    </tr>
+                <?php
+                        endfor;
+                    endforeach;
+                else :
+                    for ($i = 1; $i <= 12; $i++) :
+                        $idx = str_pad($i, 2, '0', STR_PAD_LEFT);
+                ?>
+                    <tr class="baris">
+                        <td class="p-0 text-center"><?= $bulan[$i-1] ?></td>
+                        <td class="p-0">
+                            <input type="text" class="form-control text-right" disabled id="sls_qty_<?= $idx ?>">
+                        </td>
+                        <td class="p-0">
+                            <input type="text" class="form-control text-right" disabled id="sls_rph_<?= $idx ?>">
+                        </td>
+                    </tr>
+                <?php
+                    endfor;
+                endif;
+                ?>
+                </tbody>
+            </table>
         </div>
-    <?php else: ?>
-        <!-- Kalau tidak ada data -->
-        <div class="alert alert-danger text-center p-2 mb-0" role="alert" style="font-size: 14px; display:inline-block;">
-            Tidak ada data promosi Sales
-        </div>
-    <?php endif; ?>
-</div>
+    </div>

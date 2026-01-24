@@ -14,10 +14,10 @@ if (!empty($tanggalAwal)) {
 $query = "SELECT 
     d.obi_picker, 
     CASE 
-        WHEN d.obi_picker = 'KL1' THEN 'ILHAM'
-        WHEN d.obi_picker = 'KL2' THEN 'PUTRA'
-        WHEN d.obi_picker = 'KL3' THEN 'FARHAN'
-        WHEN d.obi_picker = 'KL4' THEN 'RISKI'
+        WHEN d.obi_picker = 'KL1' THEN 'ARDY'
+        WHEN d.obi_picker = 'KL2' THEN 'WIDI'
+        WHEN d.obi_picker = 'ONL' THEN 'PRIS'
+        WHEN d.obi_picker = 'KLI' THEN 'DENY'
         ELSE 'NO USER'
     END AS obi_picker_name, 
     COUNT(DISTINCT h.obi_nopb) AS total_nopb,

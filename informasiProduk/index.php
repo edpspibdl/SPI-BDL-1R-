@@ -239,7 +239,7 @@ LEFT JOIN (
     SELECT DISTINCT ON (cba_kodepromosi)
         *
     FROM tbtr_cashback_alokasi
-    WHERE cba_kodecabang = '1R'
+    WHERE cba_kodecabang = (select prs_kodeigr from tbmaster_perusahaan)      
 ) a ON d.cbd_kodepromosi = a.cba_kodepromosi
 LEFT JOIN (
     SELECT kd_promosi AS cbk_kodepromosi, 
@@ -248,7 +248,7 @@ LEFT JOIN (
     GROUP BY kd_promosi
 ) k ON d.cbd_kodepromosi = k.cbk_kodepromosi
 WHERE CURRENT_DATE BETWEEN h.cbh_tglawal AND h.cbh_tglakhir
-    AND h.cbh_kodeigr = '1R'
+    AND h.cbh_kodeigr = (select prs_kodeigr from tbmaster_perusahaan)             
     AND COALESCE(d.cbd_recordid, '2') <> '1'
     AND d.cbd_prdcd LIKE :kodePLU
 ORDER BY h.cbh_tglawal ASC");

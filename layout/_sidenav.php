@@ -193,7 +193,7 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item"><a href="../dashboard/">PB SPI</a></li>
           <li class="list-group-item"><a href="../masterPB/">Master PB SPI</a></li>
-          <!-- <li class="list-group-item"><a href="../informasiProduk/form.php">Informasi Produk (Done)</a></li> -->
+          <li class="list-group-item"><a href="../informasiProduk/form.php">Informasi Produk (Done)</a></li>
           <li class="list-group-item"><a href="../laporanLaporan/">Laporan Laporan</a></li>
           <li class="list-group-item"><a href="../cekOrderPlu/">Cek PLU Order</a></li>
           <li class="list-group-item"><a href="../pembatasanItem/">Pembatasan Item</a></li>

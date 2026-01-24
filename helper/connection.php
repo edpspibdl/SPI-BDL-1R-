@@ -1,8 +1,18 @@
 <?php
+/**
+ * connection.php
+ * Support: Web (Session) & Task Scheduler (CLI)
+ */
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+/**
+ * ===============================
+ * KONFIGURASI CABANG & DATABASE
+ * ===============================
+ */
 $ALL_BRANCH_CONFIGS = [
     'spi1r' => [
         'name' => 'SPI METRO',
@@ -53,52 +63,107 @@ $ALL_BRANCH_CONFIGS = [
     ],
 ];
 
+/**
+ * ==================================
+ * DETEKSI MODE: WEB / CLI
+ * ==================================
+ */
+$isCLI = (php_sapi_name() === 'cli');
 
-$db_target = $_SESSION['db_target'] ?? '';       // contoh: 'prod' atau 'sim'
-$branch_target = $_SESSION['branch_target'] ?? ''; // contoh: 'spi1r', 'spi2u', 'igrbdl'
-
-
-if (
-    isset($ALL_BRANCH_CONFIGS[$branch_target]) &&
-    isset($ALL_BRANCH_CONFIGS[$branch_target][$db_target])
-) {
-    $config = $ALL_BRANCH_CONFIGS[$branch_target][$db_target];
-    $host = $config['host'];
-    $dbname = $config['dbname'];
-    $username = $config['user'];
-    $password = $config['pass'];
-
-    try {
-        $conn = new PDO("pgsql:host=$host;dbname=$dbname", $username, $password);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("❌ Koneksi gagal ke database $dbname ($host) sebagai $username:<br>" . $e->getMessage());
-    }
+/**
+ * Jika dijalankan via Task Scheduler (CLI)
+ */
+if ($isCLI) {
+    $db_target     = 'prod';   // prod / sim
+    $branch_target = 'spi1r';  // default CLI
 } else {
-    die("⚠️ Koneksi gagal: Konfigurasi untuk cabang '$branch_target' atau mode '$db_target' tidak ditemukan.");
+    $db_target     = $_SESSION['db_target'] ?? '';
+    $branch_target = $_SESSION['branch_target'] ?? '';
 }
 
+/**
+ * ==================================
+ * PEMBATASAN AKSES SPI1R BERDASARKAN IP
+ * (SILENT REDIRECT KE SPI2U)
+ * ==================================
+ */
+if ($_SESSION['branch_target'] === 'spi1r') {
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
-$remote_connections = [];
+    // Cek subnet 192.168.170.XX
+    if (!preg_match('/^192\.168\.170\.\d{1,3}$/', $client_ip)) {
+        // Silent redirect ke SPI2U
+        $_SESSION['branch_target'] = 'spi2u';
+    }
+}
+
+/**
+ * ===============================
+ * VALIDASI KONFIGURASI
+ * ===============================
+ */
+if (
+    !isset($ALL_BRANCH_CONFIGS[$branch_target]) ||
+    !isset($ALL_BRANCH_CONFIGS[$branch_target][$db_target])
+) {
+    die(
+        "⚠️ Koneksi gagal: Konfigurasi tidak ditemukan. " .
+        "branch_target={$branch_target}, db_target={$db_target}"
+    );
+}
+
+$config   = $ALL_BRANCH_CONFIGS[$branch_target][$db_target];
+$host     = $config['host'];
+$dbname   = $config['dbname'];
+$username = $config['user'];
+$password = $config['pass'];
+
+/**
+ * ===============================
+ * KONEKSI DATABASE UTAMA
+ * ===============================
+ */
+try {
+    $conn = new PDO(
+        "pgsql:host={$host};dbname={$dbname}",
+        $username,
+        $password,
+        [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    die("❌ Koneksi database gagal: " . $e->getMessage());
+}
+
+/**
+ * ===============================
+ * KONEKSI REMOTE (OPSIONAL)
+ * ===============================
+ */
+$remote_connections  = [];
 $remote_branch_names = [];
 
 foreach ($ALL_BRANCH_CONFIGS as $code => $branch) {
     $remote_branch_names[$code] = $branch['name'];
-    if ($code === $branch_target) continue; // skip cabang aktif
 
-    if (isset($branch[$db_target])) {
+    if ($code === $branch_target) continue;
+    if (!isset($branch[$db_target])) continue;
+
+    try {
         $remote = $branch[$db_target];
-        try {
-            $dsn_remote = "pgsql:host={$remote['host']};dbname={$remote['dbname']}";
-            $conn_remote = new PDO($dsn_remote, $remote['user'], $remote['pass']);
-            $conn_remote->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $remote_connections[$code] = $conn_remote;
-        } catch (PDOException $e) {
-            // Tidak fatal — hanya simpan pesan error
-            $remote_connections[$code] = null;
-            $error_messages[$code] = "Gagal koneksi ke {$branch['name']} ($code): " . $e->getMessage();
-        }
+        $dsn = "pgsql:host={$remote['host']};dbname={$remote['dbname']}";
+
+        $remote_connections[$code] = new PDO(
+            $dsn,
+            $remote['user'],
+            $remote['pass'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]
+        );
+    } catch (PDOException $e) {
+        $remote_connections[$code] = null;
     }
 }
-
-?>
