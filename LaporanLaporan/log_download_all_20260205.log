@@ -1,0 +1,28 @@
+START 2026-02-05 15:54:15
+RUN: ../allitem/download_allitem.php
+START 2026-02-05 16:02:04
+RUN: ../allitem/download_allitem.php
+START 2026-02-05 16:03:14
+RUN: ../diskonminus/download_diskonminus.php
+START 2026-02-05 16:26:41
+RUN: ../diskonminus/download_diskonminus.php
+START 2026-02-05 16:28:29
+RUN: ../diskonminus/download_diskonminus.php
+SUCCESS: ../diskonminus/download_diskonminus.php
+RUN: ../allitem/download_allitem.php
+START 2026-02-05 16:36:23
+RUN: ../diskonminus/download_diskonminus.php
+SUCCESS: ../diskonminus/download_diskonminus.php
+RUN: ../allitem/download_allitem.php
+START 2026-02-05 16:38:57
+RUN: ../diskonminus/download_diskonminus.php
+SUCCESS: ../diskonminus/download_diskonminus.php
+RUN: ../allitem/download_allitem.php
+START 2026-02-05 16:41:56
+RUN: ../diskonminus/download_diskonminus.php
+SUCCESS: ../diskonminus/download_diskonminus.php
+RUN: ../allitem/download_allitem.php
+START 2026-02-05 16:42:45
+RUN: ../diskonminus/download_diskonminus.php
+SUCCESS: ../diskonminus/download_diskonminus.php
+RUN: ../allitem/download_allitem.php

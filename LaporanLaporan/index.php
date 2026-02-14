@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Jakarta');
 require_once '../layout/_top.php';
 require_once '../helper/connection.php';
 ?>
