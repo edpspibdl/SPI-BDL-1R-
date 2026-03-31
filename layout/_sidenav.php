@@ -325,6 +325,7 @@
         <hr>
         <h6 class="menu-heading">IC</h6>
         <ul class="list-group list-group-flush">
+          <li class="list-group-item"><a href="../ic/">SO IC</a></li>
           <li class="list-group-item"><a href="../resetIC/">Reset IC Per Plu</a></li>
           <li class="list-group-item"><a href="../historySOIC/">History SOIC</a></li>
           <li class="list-group-item"><a href="../penerimaanVsSlp/">Penerimaan vs SLP</a></li>

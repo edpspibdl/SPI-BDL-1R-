@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 require_once '../layout/_top.php'; // Include top layout (menu, etc.)
 require_once '../helper/connection.php'; // Ensure this is the correct path

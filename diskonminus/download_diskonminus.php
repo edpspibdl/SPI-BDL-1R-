@@ -12,7 +12,7 @@ $isJob = defined('JOB_MODE') && JOB_MODE === true;
 /* ======================
    PATH FILE
    ====================== */
-$tempSavePath = 'D:\\Laporan\\Laporan Pagi\\DISKON MINUS\\';
+$tempSavePath = 'D:\\Laporan\\01. Laporan Pagi\\DISKON MINUS\\';
 
 if (!file_exists($tempSavePath)) {
     if (!mkdir($tempSavePath, 0777, true)) {

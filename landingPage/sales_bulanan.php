@@ -192,7 +192,8 @@ try {
             WHERE sls.trjd_recordid IS NULL AND sls.trjd_quantity <> 0
         ) AS dtl_inner
     ) AS dtl_outer
-    WHERE DATE_TRUNC('month', dtl_tanggal) >= DATE_TRUNC('month', current_date - INTERVAL '11 months')
+    -- PERBAIKAN 1: Menghindari lompatan interval di Postgres pada akhir bulan
+    WHERE DATE_TRUNC('month', dtl_tanggal) >= DATE_TRUNC('month', current_date) - INTERVAL '11 months'
     GROUP BY month_start, month_label
     ORDER BY month_start ASC";
 
@@ -202,7 +203,10 @@ try {
 
     // Inisialisasi array untuk 12 bulan terakhir
     $monthly_data_filled = [];
-    $current_date_php = new DateTime(); // Gunakan nama variabel berbeda untuk menghindari konflik
+    
+    // PERBAIKAN 2: Gunakan 'first day of this month' untuk menghindari bug tgl 31!
+    $current_date_php = new DateTime('first day of this month'); 
+    
     for ($i = 11; $i >= 0; $i--) {
         $date = clone $current_date_php;
         $date->modify("-$i month");

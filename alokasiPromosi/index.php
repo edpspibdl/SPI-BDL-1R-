@@ -187,110 +187,93 @@ FROM (
 ?>
 
 <style>
-    /* Global Styles for Promo Section */
     .promo-section {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-weight: bold;
-        font-size: 14px;
-        background-color: #f9f9f9;
-        /* Consistent background */
+        background-color: #f4f7f6;
+        color: #334155;
+        padding-bottom: 40px;
     }
 
-    .promo-section .container {
-        width: 100%;
-        margin: auto;
+    /* Card Style Wrapper */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
     }
 
-    .promo-section input,
-    .promo-section select {
-        width: 100%;
-        padding: 4px;
-        box-sizing: border-box;
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        padding: 15px 20px;
+        background: #ffffff;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-title::before {
+        content: "";
+        width: 4px;
+        height: 18px;
+        background: #3b82f6;
+        margin-right: 12px;
+        border-radius: 4px;
     }
 
     /* Table Styles */
     .promo-section table {
         width: 100%;
         border-collapse: collapse;
-        background-color: white;
-        margin-bottom: 20px;
-        /* Space between tables */
-    }
-
-    .promo-section table,
-    .promo-section th,
-    .promo-section td {
-        border: 1px solid #ccc;
+        font-size: 13px;
     }
 
     .promo-section th {
-        background-color: #0074D9;
-        color: white;
-        padding: 8px;
-        /* Consistent padding */
-        text-align: center;
-        white-space: nowrap;
-        /* Prevent wrapping in headers */
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.025em;
+        padding: 12px 15px;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #f1f5f9;
     }
 
     .promo-section td {
-        padding: 4px;
-        text-align: center;
-        /* Default center align */
+        padding: 12px 15px;
+        border-bottom: 1px solid #f1f5f9;
+        border-right: 1px solid #f1f5f9;
+        vertical-align: middle;
     }
 
-    /* Specific Table Headers */
-    .promo-section .header-table td {
-        text-align: left;
-        background-color: #f1f1f1;
+    .promo-section tr:last-child td {
+        border-bottom: none;
     }
 
-    /* Section Box Styling */
-    .promo-section .section-box {
-        margin-top: 10px;
-        padding: 8px;
-        border: 1px solid #ccc;
-        background: #fff;
+    .promo-section tr:hover td {
+        background-color: #f1f5f9;
     }
 
-    /* Modal Specific Styles (if used in a modal context) */
-    .promo-section .modal-backdrop {
-        z-index: 1040 !important;
+    /* Alignment & Data Colors */
+    .text-right-td { text-align: right !important; font-family: 'Inter', sans-serif; font-weight: 600; }
+    .text-left-td { text-align: left !important; }
+    .text-center-td { text-align: center !important; }
+
+    .badge-code {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 11px;
     }
 
-    .promo-section .modal {
-        z-index: 1050 !important;
-    }
-
-    .promo-section .modal-dialog {
-        z-index: 1060 !important;
-    }
-
-    /* Custom Text Alignment for Table Cells */
-    .promo-section .text-left-td {
-        text-align: left !important;
-    }
-
-    .promo-section .text-right-td {
-        text-align: right !important;
-    }
-
-    /* Style for 'Data tidak ditemukan' row */
-    .promo-section .no-data-row td {
-        text-align: center;
-        font-style: italic;
-        color: #777;
-        padding: 10px;
-    }
-
-    /* Section Titles */
-    .promo-section .section-title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        margin-top: 20px;
-        /* Space above each section title */
-    }
+    .sisa-positif { color: #10b981; } /* Hijau */
+    .sisa-kritis { color: #f59e0b; }  /* Oranye */
+    .no-data-row td { padding: 40px !important; color: #94a3b8; font-style: italic; }
 </style>
 
 <head>

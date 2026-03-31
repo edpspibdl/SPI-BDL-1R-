@@ -47,8 +47,8 @@ FROM (
             WHEN cus_flagmemberkhusus = 'Y' THEN 'MEMBER MERAH' 
             ELSE 'MEMBER BIRU' 
         END AS JENIS_MEMBER,
-        OBI_TTLORDER + OBI_TTLPPN  - SUM(COALESCE(CASHBACK_ORDER,0)) AS RPH_ORDERHEADER,
-        OBI_REALORDER + OBI_REALPPN  - SUM(COALESCE(CASHBACK_REAL,0)) AS RPH_REALISASI,
+        (OBI_TTLORDER + OBI_TTLPPN - COALESCE(SUM(CASHBACK_ORDER), 0)) AS RPH_ORDERHEADER,
+        (OBI_REALORDER + OBI_REALPPN - COALESCE(SUM(CASHBACK_REAL), 0)) AS RPH_REALISASI,
         OBI_ITEMORDER,
         OBI_REALITEM,
         CASE 
@@ -93,38 +93,81 @@ try {
 ?>
 <!-- Styling untuk Tabel -->
 <style>
-  .modal-dialog {
-    max-width: 70%;
-    /* Atur lebar modal sesuai dengan persentase */
+  /* Container Styling */
+  .section-header h3 {
+    font-weight: 700;
+    color: #1e293b;
   }
 
+  /* Modern Table Styling */
   #table-1 {
-    width: 100%;
-    table-layout: auto;
-    border-collapse: collapse;
+    border: none !important;
+    border-collapse: separate;
+    border-spacing: 0 8px; /* Memberikan jarak antar baris */
+    width: 100% !important;
   }
 
-  #table-1 th,
-  #table-1 td {
-    padding: 8px;
-    text-align: left;
-    border: 1px solid #ddd;
+  #table-1 thead th {
+    background-color: #f8fafc !important;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    padding: 12px 15px;
+    border: none;
   }
 
-  #table-1 th {
-    background-color: #f8f9fa;
-    font-weight: bold;
-    border-bottom: 2px solid #333;
+  #table-1 tbody tr {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s ease;
   }
 
-  #table-1 td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  #table-1 tbody tr:hover {
+    background-color: #f1f5f9 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   }
 
-  .table-responsive {
-    overflow-x: auto;
+  #table-1 tbody td {
+    padding: 14px 15px;
+    vertical-align: middle;
+    border: none;
+    color: #334155;
+    font-size: 0.85rem;
+  }
+
+  /* Rounded corners untuk baris */
+  #table-1 tbody tr td:first-child { border-radius: 8px 0 0 8px; }
+  #table-1 tbody tr td:last-child { border-radius: 0 8px 8px 0; }
+
+  /* Badge Customization */
+  .badge-status {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .text-amount {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .text-sub {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  /* Button Styling */
+  .btn-action {
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.3px;
   }
 </style>
 
@@ -147,40 +190,77 @@ try {
                   <th>#</th>
                   <th>Status</th>
                   <th>No PB</th>
-                  <th>PB Queue</th>
                   <th>Member</th>
                   <th>Rph Order</th>
                   <th>Rph Real</th>
                   <th>Jarak</th>
-                  <th>Ongkir</th>
                   <th>Pembayaran</th>
                   <th>Detail</th>
 
                 </tr>
               </thead>
               <tbody>
-                <?php
-                $no = 0; // Inisialisasi nomor
-                foreach ($result as $row):
-                  $no++; ?>
-                  <tr>
-                    <td><?= $no ?></td>
-                    <td><?= htmlspecialchars($row["status_pb"]) ?></td>
-                    <td><?= htmlspecialchars($row["obi_nopb"]) ?></td>
-                    <td><?= htmlspecialchars($row["pb"]) ?></td>
-                    <td><?= htmlspecialchars($row["member"]) ?></td>
-                    <td><?= number_format($row["rph_orderheader"], 0, '.', ',') ?></td>
-                    <td><?= number_format($row["rph_realisasi"], 0, '.', ',') ?></td>
-                    <td><?= number_format($row["cus_jarak"], 0, '.', ',') ?></td>
-                    <td><?= number_format($row["rph_ongkir"], 0, '.', ',') ?></td>
-                    <td><?= htmlspecialchars($row["tipe_bayar"]) ?></td>
-                    <td>
-                      <button class='btn btn-info btn-sm' data-toggle='modal' data-target='#modalDetail' data-pb="<?= htmlspecialchars($row['pb']) ?>">Produk</button>
-                      <button class='btn btn-success btn-sm' data-toggle='modal' data-target='#modalCSBK' data-pb="<?= htmlspecialchars($row['pb']) ?>">Cashback</button>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              </tbody>
+  <?php
+  $no = 0;
+  foreach ($result as $row):
+    $no++; 
+    
+    // Logika warna status
+    $status_class = 'badge-secondary';
+    if($row['status_pb'] == 'Selesai Struk') $status_class = 'badge-success';
+    if($row['status_pb'] == 'Siap Picking') $status_class = 'badge-warning';
+    if(strpos($row['status_pb'], 'Siap') !== false) $status_class = 'badge-info';
+  ?>
+    <tr>
+      <td class="text-muted"><?= $no ?></td>
+      <td>
+        <span class="badge badge-status <?= $status_class ?>">
+            <?= htmlspecialchars($row["status_pb"]) ?>
+        </span>
+      </td>
+      <td>
+        <span class="font-weight-bold"><?= htmlspecialchars($row["obi_nopb"]) ?></span>
+        <span class="text-sub">Queue: <?= htmlspecialchars($row["pb"]) ?></span>
+      </td>
+      <td>
+        <div style="max-width: 180px; overflow: hidden; text-overflow: ellipsis;">
+            <strong><?= explode(' - ', $row["member"])[1] ?? $row["member"] ?></strong>
+            <span class="text-sub"><?= explode(' - ', $row["member"])[0] ?></span>
+        </div>
+      </td>
+      <td class="text-right">
+        <span class="text-amount">Rp <?= number_format($row["rph_orderheader"], 0, '.', ',') ?></span>
+      </td>
+      <td class="text-right">
+        <span class="text-amount text-primary">Rp <?= number_format($row["rph_realisasi"], 0, '.', ',') ?></span>
+      </td>
+      <td class="text-center">
+        <span class="badge badge-light text-muted font-weight-bold"><?= number_format($row["cus_jarak"], 1, '.', ',') ?> Km</span>
+      </td>
+      <td>
+        <span class="text-sub font-weight-bold" style="color:#475569"><?= htmlspecialchars($row["tipe_bayar"]) ?></span>
+      </td>
+      <td style="width: 200px;"> <div class="d-flex justify-content-start align-items-center">
+    
+    <button class="btn btn-outline-info btn-sm btn-detail-modern mr-2" 
+            data-toggle="modal" 
+            data-target="#modalDetail" 
+            data-pb="<?= htmlspecialchars($row['pb']) ?>">
+        <i class="fas fa-box-open mr-1"></i> <span>PRODUK</span>
+    </button>
+
+    <button class="btn btn-outline-success btn-sm btn-detail-modern" 
+            data-toggle="modal" 
+            data-target="#modalCSBK" 
+            data-pb="<?= htmlspecialchars($row['pb']) ?>">
+        <i class="fas fa-percentage mr-1"></i> <span>PROMO</span>
+    </button>
+
+  </div>
+</td>
+    </tr>
+  <?php endforeach; ?>
+</tbody>
             </table>
           </div>
         </div>
@@ -189,45 +269,70 @@ try {
   </div>
 </section>
 
-<!-- Modal -->
 <div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document"> <!-- Menambahkan kelas modal-lg -->
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalDetailLabel">Detail Order </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="modalContent">Loading...</div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document"> 
+        <div class="modal-content" style="border-radius: 10px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            
+            <div class="modal-header" style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 12px 20px;">
+                <h5 class="modal-title" id="modalDetailLabel" style="font-weight: 700; color: #334155; font-size: 15px;">
+                    <i class="fas fa-shopping-basket mr-2 text-primary"></i> Rincian Produk
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="outline: none; font-size: 1.2rem;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="background-color: #ffffff; padding: 0;">
+                <div id="modalContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted" style="font-size: 12px;">Memuat data barang...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 20px;">
+                <button type="button" class="btn btn-light btn-sm px-4" data-dismiss="modal" style="border-radius: 5px; font-weight: 600; font-size: 12px; border: 1px solid #cbd5e1;">
+                    Tutup
+                </button>
+            </div>
+            
+        </div>
     </div>
-  </div>
 </div>
 
-
-<!-- Modal CSBK -->
 <div class="modal fade" id="modalCSBK" tabindex="-1" role="dialog" aria-labelledby="modalCSBKLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document"> <!-- Modal besar -->
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalCSBKLabel">Detail CSBK</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="modalContentCSBK">Loading...</div> <!-- Ini untuk isi konten dari get_csbk.php -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 700px;"> 
+        <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            
+            <div class="modal-header" style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 12px 15px;">
+                <h5 class="modal-title" id="modalCSBKLabel" style="font-weight: 700; color: #334155; font-size: 14px;">
+                    <i class="fas fa-info-circle mr-2 text-primary"></i> Detail Promo
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="font-size: 1.2rem;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="background-color: #ffffff; padding: 15px;">
+                <div id="modalContentCSBK">
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted" style="font-size: 12px;">Mengambil data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 15px;">
+                <button type="button" class="btn btn-light btn-sm px-3" data-dismiss="modal" style="border-radius: 6px; font-weight: 600; font-size: 12px; border: 1px solid #e2e8f0;">Tutup</button>
+            </div>
+            
+        </div>
     </div>
-  </div>
 </div>
 
 
@@ -245,21 +350,31 @@ try {
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const table = $('#table-1').DataTable({
-      responsive: true,
-      lengthMenu: [10, 25, 50, 100],
-      buttons: [{
-          extend: 'copy',
-          text: 'Copy'
-        },
-        {
-          extend: 'excel',
-          text: 'Excel',
-          filename: '_' + new Date().toISOString().split('T')[0],
-          title: null
-        }
-      ],
-      dom: 'Bfrtip'
-    });
+  responsive: true,
+  pageLength: 10,
+  dom: '<"d-flex justify-content-between align-items-center mb-3"Bf>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+  buttons: [
+    {
+      extend: 'excel',
+      text: '<i class="fas fa-file-excel mr-1"></i> Export Excel',
+      className: 'btn btn-sm btn-success shadow-sm',
+      titleAttr: 'Export ke Excel'
+    },
+    {
+      extend: 'copy',
+      text: '<i class="fas fa-copy mr-1"></i> Copy',
+      className: 'btn btn-sm btn-light shadow-sm'
+    }
+  ],
+  language: {
+    search: "_INPUT_",
+    searchPlaceholder: "Cari data transaksi...",
+    paginate: {
+      previous: "<i class='fas fa-chevron-left'></i>",
+      next: "<i class='fas fa-chevron-right'></i>"
+    }
+  }
+});
 
     table.buttons().container().appendTo('#table-1_wrapper .col-md-6:eq(0)');
   });

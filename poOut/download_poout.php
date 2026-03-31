@@ -4,7 +4,7 @@ require_once '../helper/PHP_XLSXWriter/xlsxwriter.class.php'; // Sesuaikan path 
 require_once '../helper/connection.php';
 
 // Tentukan path untuk menyimpan file sementara
-$tempSavePath = 'D:\\Laporan\\Laporan Pagi\\ALL ITEM & PO OUT\\';
+$tempSavePath = 'D:\\Laporan\\01. Laporan Pagi\\ALL ITEM & PO OUT\\';
 
 // Memeriksa apakah folder ada, jika tidak, buat folder tersebut
 if (!file_exists($tempSavePath)) {

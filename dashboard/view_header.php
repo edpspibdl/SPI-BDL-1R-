@@ -103,9 +103,6 @@ $hdr = $obi->headerTgl($_POST['id']);
             <div class="modal-body" id="modalContent">
                 <section id="body-dtl"></section> <!-- Content will be dynamically inserted here -->
             </div>
-            <div class="modal-footer" style="background-color: #f8f9fa;">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-            </div>
         </div>
     </div>
 </div>

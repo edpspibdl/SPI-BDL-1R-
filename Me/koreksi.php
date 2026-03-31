@@ -22,7 +22,7 @@ FROM (
             ) - LPP_RPH_SELISIH_SOIC
         ), 2) AS KOREKSI,
         ROUND(lpp_qtybeli, 2) AS BPBQTY, 
-        ROUND(lpp_rphbeli, 2) AS BPBRp,  
+        ROUND(lpp_rphbeli, 2) AS BPBRp, 
         ROUND(lpp_qtytrmcb, 2) AS TACQTY,
         ROUND(lpp_rphtrmcb, 2) AS TACRp,
         ROUND(lpp_qtyretursales, 2) AS RETURIDMQTY, 
@@ -53,7 +53,7 @@ FROM (
 ) AS SUBQUERY
 WHERE KOREKSI < -1000
 ORDER BY KOREKSI ASC
-LIMIT 5;
+LIMIT 5
 ";
     $stmt1 = $conn->prepare($query1);
     $stmt1->execute();
